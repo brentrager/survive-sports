@@ -3,6 +3,7 @@ import { createLogger, format, transports } from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 import { MFL } from './mfl';
 import { PlayersManager } from './players-manager';
+import { ApiServer } from './api-server';
 
 const logger = createLogger({
     format: format.combine(
@@ -41,8 +42,11 @@ const logger = createLogger({
         const db = mongoClient.db(dbName);
 
         const mfl = new MFL(logger);
-        const playerManager = new PlayersManager(logger, db, mfl);
-        await playerManager.update();
+        const playersManager = new PlayersManager(logger, db, mfl);
+        await playersManager.update();
+
+        const apiServer = new ApiServer(logger, playersManager);
+        await apiServer.start();
     } catch (error) {
         logger.error(`General error: ${error}`);
         console.error(error);

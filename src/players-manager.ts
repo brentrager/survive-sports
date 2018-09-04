@@ -4,20 +4,54 @@ import * as moment from 'moment';
 import { BehaviorSubject } from 'rxjs';
 import { Logger } from 'winston';
 
+export interface Player {
+    id: string;
+    position: string;
+    name: string;
+    team: string;
+}
+
 export interface Players {
     timestamp: number;
-    player: Array<{
-        id: string;
-    }>;
+    player: Array<Player>;
     _id: any;
+}
+
+export interface PlayersById {
+    [id: string]: Player
+}
+
+export interface PlayersByPosition {
+    [position: string]: Array<Player>
 }
 
 export class PlayersManager {
     private collection: Collection;
     playersSubject: BehaviorSubject<Players | undefined> = new BehaviorSubject(undefined);
+    playersByIdSubject: BehaviorSubject<PlayersById | undefined> = new BehaviorSubject(undefined);
+    playersByPositionSubject: BehaviorSubject<PlayersByPosition | undefined> = new BehaviorSubject(undefined);
 
     constructor(private logger: Logger, private db: Db, private mfl: mfl.MFL) {
         this.collection = this.db.collection('players');
+
+        this.playersSubject.subscribe(players => {
+            if (players) {
+                this.playersByIdSubject.next(players.player.reduce((result: PlayersById, player: Player) => {
+                    result[player.id] = player;
+                    return result;
+                }, {} as PlayersById));
+
+                this.playersByPositionSubject.next(players.player.reduce((result: PlayersByPosition, player: Player) => {
+                    if ('position' in player) {
+                        if (!(player.position in result)) {
+                            result[player.position] = [];
+                        }
+                        result[player.position].push(player);
+                    }
+                    return result;
+                }, {} as PlayersByPosition))
+            }
+        });
     }
 
     async update() {
@@ -53,7 +87,7 @@ export class PlayersManager {
                         for (const mflPlayer of mflPlayers.player) {
                             const index = mongoPlayers.player.findIndex(x => x.id === mflPlayer.id);
                             if (index >= 0) {
-                                mongoPlayers.player[index] = mflPlayer;
+                                mongoPlayers.player[index] = mflPlayer as Player;
                             }
                         }
 
