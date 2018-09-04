@@ -1,12 +1,15 @@
 import { MongoClient } from 'mongodb';
 import { createLogger, format, transports } from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
+import { MFL } from './mfl';
+import { PlayersManager } from './players-manager';
 
 const logger = createLogger({
     format: format.combine(
         format.colorize(),
         format.timestamp(),
         format.align(),
+        format.prettyPrint(),
         format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
     ),
     transports: [
@@ -15,27 +18,33 @@ const logger = createLogger({
             datePattern: 'YYYY-MM-DD-HH',
             zippedArchive: true,
             maxSize: '20m',
-            maxFiles: '7d'
+            maxFiles: '7d',
+            handleExceptions: true
         }),
-        new transports.Console()
+        new transports.Console({
+            handleExceptions: true
+        })
     ]
 });
 
-// Connection URL
-const url = 'mongodb://localhost:27017';
+(async () => {
+    try {
+        // Connection URL
+        const url = 'mongodb://localhost:27017';
 
-// Database Name
-const dbName = 'survive-sports';
+        // Database Name
 
-MongoClient.connect(url, function (err, client) {
+        const mongoClient = await MongoClient.connect(url);
+        logger.info('Connected to mongodb');
 
-    if (err) {
-        logger.error(err)
+        const dbName = 'survive-sports';
+        const db = mongoClient.db(dbName);
+
+        const mfl = new MFL(logger);
+        const playerManager = new PlayersManager(logger, db, mfl);
+        await playerManager.update();
+    } catch (error) {
+        logger.error(`General error: ${error}`);
+        console.error(error);
     }
-    logger.info('Connected to mongodb');
-
-    const db = client.db(dbName);
-    logger.info(db);
-
-    client.close();
-});
+})();
