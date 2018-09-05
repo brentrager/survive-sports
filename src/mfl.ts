@@ -1,17 +1,32 @@
 import axios from 'axios';
 import { Logger } from 'winston';
 import * as moment from 'moment';
+import LabelledLogger from './labelled-logger';
+
+const MAP_MFL_POSITIONS_TO_STANDARD: any = {
+    QB: 'QB',
+    RB: 'RB',
+    WR: 'WR',
+    TE: 'TE',
+    Def: 'DST',
+    PK: 'K'
+};
 
 export interface Players {
-    timestamp: number;
+    timestamp: string | number;
     player: Array<{
         id: string;
+        position: string;
+        name: string;
     }>;
 
 }
 
 export class MFL {
-    constructor(private logger: Logger) {
+    private logger: LabelledLogger;
+
+    constructor(logger: Logger) {
+        this.logger = new LabelledLogger(logger, 'MFL');
     }
 
     async getPlayers(since?: moment.Moment): Promise<Players | undefined> {
@@ -21,9 +36,15 @@ export class MFL {
             const response = await axios.get(url);
             if (!response.data.error)
             {
-                const data = response.data.players;
-                const timestamp = moment(data.timestamp * 1000);
-                data.timestamp = timestamp.toISOString();
+                const data = response.data.players as Players;
+                const timestamp = moment(data.timestamp as number * 1000);
+                data.timestamp = timestamp.format();
+
+                for (const player of data.player) {
+                    player.position = player.position in MAP_MFL_POSITIONS_TO_STANDARD ? MAP_MFL_POSITIONS_TO_STANDARD[player.position] : player.position;
+                    player.name = player.name.split(', ').reverse().join(' ');
+                }
+
                 return data as Players;
             } else {
                 this.logger.error(`Error getting player update: ${response.data.error}`);

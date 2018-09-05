@@ -4,8 +4,10 @@ import * as DailyRotateFile from 'winston-daily-rotate-file';
 import { MFL } from './mfl';
 import { PlayersManager } from './players-manager';
 import { ApiServer } from './api-server';
+import { FantasyPros } from './fanatasy-pros';
+import LabelledLogger from './labelled-logger';
 
-const logger = createLogger({
+const winstonLogger = createLogger({
     format: format.combine(
         format.colorize(),
         format.timestamp(),
@@ -28,6 +30,8 @@ const logger = createLogger({
     ]
 });
 
+const logger = new LabelledLogger(winstonLogger, 'Main');
+
 (async () => {
     try {
         // Connection URL
@@ -41,11 +45,12 @@ const logger = createLogger({
         const dbName = 'survive-sports';
         const db = mongoClient.db(dbName);
 
-        const mfl = new MFL(logger);
-        const playersManager = new PlayersManager(logger, db, mfl);
+        const mfl = new MFL(winstonLogger);
+        const fantasyPros = new FantasyPros(winstonLogger);
+        const playersManager = new PlayersManager(winstonLogger, db, mfl, fantasyPros);
         await playersManager.update();
 
-        const apiServer = new ApiServer(logger, playersManager);
+        const apiServer = new ApiServer(winstonLogger, playersManager);
         await apiServer.start();
     } catch (error) {
         logger.error(`General error: ${error}`);
