@@ -42,27 +42,30 @@ export class FantasyPros {
         try {
             const rankings = {} as Rankings;
             for (const position in URLS_BY_POSITION) {
-                (rankings as any)[position] = [];
-                const curRankings = (rankings as any)[position];
-                const url = URLS_BY_POSITION[position];
-                const html = await axios.get(url);
-                const $ = cheerio.load(html.data);
+                if (URLS_BY_POSITION.hasOwnProperty(position)) {
+                    (rankings as any)[position] = [];
+                    const curRankings = (rankings as any)[position];
+                    const url = URLS_BY_POSITION[position];
+                    this.logger.info(`Getting rankes from ${url}`);
+                    const html = await axios.get(url);
+                    const $ = cheerio.load(html.data);
 
-                $('input.wsis[type=checkbox]').each((index, element) => {
-                    index = index;
-                    const ranking = {
-                        ranking: element.parent.parent.firstChild.firstChild.nodeValue,
-                        name: element.attribs['data-name'],
-                        team: element.attribs['data-team'],
-                        opp: element.attribs['data-opp'].trim(),
-                        gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').format()
-                    };
+                    $('input.wsis[type=checkbox]').each((_index, element) => {
+                        const ranking = {
+                            ranking: parseInt(element.parent.parent.firstChild.firstChild.nodeValue, 10),
+                            name: element.attribs['data-name'],
+                            team: element.attribs['data-team'],
+                            opp: element.attribs['data-opp'].trim(),
+                            gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').format()
+                        };
 
-                    curRankings.push(ranking);
-                });
+                        curRankings.push(ranking);
+                    });
+                }
             }
 
             rankings.timestamp = moment().format();
+
             return rankings;
         } catch (error) {
             this.logger.error(`Error loading rankings: ${error}`);

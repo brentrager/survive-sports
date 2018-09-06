@@ -31,11 +31,11 @@ export class MFL {
 
     async getPlayers(since?: moment.Moment): Promise<Players | undefined> {
         try {
-            const url = since ? `https://www70.myfantasyleague.com/2018/export?TYPE=players&DETAILS=1&JSON=1&SINCE=${Math.floor(since.valueOf() / 1000)}`
-                : 'https://www70.myfantasyleague.com/2018/export?TYPE=players&DETAILS=1&JSON=1';
+            const year = moment().format('YYYY');
+            const url = since ? `https://www70.myfantasyleague.com/${year}/export?TYPE=players&DETAILS=1&JSON=1&SINCE=${Math.floor(since.valueOf() / 1000)}`
+                : `https://www70.myfantasyleague.com/${year}/export?TYPE=players&DETAILS=1&JSON=1`;
             const response = await axios.get(url);
-            if (!response.data.error)
-            {
+            if (!response.data.error) {
                 const data = response.data.players as Players;
                 const timestamp = moment(data.timestamp as number * 1000);
                 data.timestamp = timestamp.format();
@@ -48,6 +48,7 @@ export class MFL {
                 return data as Players;
             } else {
                 this.logger.error(`Error getting player update: ${response.data.error}`);
+
                 return undefined;
             }
         }

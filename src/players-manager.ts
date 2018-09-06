@@ -1,19 +1,21 @@
+// tslint:disable:quotemark
 import { Db, Collection } from 'mongodb';
-import * as mfl from './mfl';
-import * as fantasyPros from './fanatasy-pros';
+import * as mflTypes from './mfl';
+import * as fantasyProsTypes from './fanatasy-pros';
 import * as moment from 'moment';
+// tslint:disable-next-line:import-blacklist
 import { BehaviorSubject } from 'rxjs';
 import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
 
-const POSITIONS = [
+const POSITIONS = new Set([
     'QB',
     'RB',
     'WR',
     'TE',
     'K',
     'DST'
-];
+]);
 
 export interface Ranking {
     ranking: number;
@@ -54,11 +56,11 @@ export interface Players {
 }
 
 export interface PlayersById {
-    [id: string]: Player
+    [id: string]: Player;
 }
 
 export interface PlayersByPosition {
-    [position: string]: Array<Player>
+    [position: string]: Array<Player>;
 }
 
 export class PlayersManager {
@@ -74,7 +76,7 @@ export class PlayersManager {
         return this.playersByPositionSubject;
     }
 
-    constructor(logger: Logger, private db: Db, private mfl: mfl.MFL, private fantasyPros: fantasyPros.FantasyPros) {
+    constructor(logger: Logger, private db: Db, private mfl: mflTypes.MFL, private fantasyPros: fantasyProsTypes.FantasyPros) {
         this.logger = new LabelledLogger(logger, 'PlayersManager');
         this.collectionPlayers = this.db.collection('players');
         this.collectionRankings = this.db.collection('rankings');
@@ -83,26 +85,30 @@ export class PlayersManager {
             if (players) {
                 this.playersByIdSubject.next(players.player.reduce((result: PlayersById, player: Player) => {
                     result[player.id] = player;
+
                     return result;
                 }, {} as PlayersById));
 
                 const playersByPosition = players.player.reduce((result: PlayersByPosition, player: Player) => {
-                    if ('position' in player) {
+                    if ('position' in player && POSITIONS.has(player.position)) {
                         if (!(player.position in result)) {
                             result[player.position] = [];
                         }
                         result[player.position].push(player);
                     }
+
                     return result;
                 }, {} as PlayersByPosition);
 
                 for (const position in playersByPosition) {
-                    playersByPosition[position] = playersByPosition[position].sort((a, b) => {
-                        const ranka = a.ranking && position in a.ranking ? a.ranking[position].ranking : Number.MAX_SAFE_INTEGER;
-                        const rankb = b.ranking && position in b.ranking ? b.ranking[position].ranking : Number.MAX_SAFE_INTEGER;
+                    if (playersByPosition.hasOwnProperty(position)) {
+                        playersByPosition[position] = playersByPosition[position].sort((a, b) => {
+                            const ranka = a.ranking && position in a.ranking ? a.ranking[position].ranking : Number.MAX_SAFE_INTEGER;
+                            const rankb = b.ranking && position in b.ranking ? b.ranking[position].ranking : Number.MAX_SAFE_INTEGER;
 
-                        return ranka - rankb;
-                    });
+                            return ranka - rankb;
+                        });
+                    }
                 }
 
                 this.playersByPositionSubject.next(playersByPosition);
@@ -110,34 +116,30 @@ export class PlayersManager {
         });
     }
 
-    async updateRankings() {
+    async updateRankings(force: boolean = false): Promise<void> {
         try {
             this.logger.info('Updating Fantasy Pros rankings in db.');
 
             const docs = await this.collectionRankings.find({}).toArray();
-            let rankings: Rankings | undefined;
+            let mongoRankings: Rankings | undefined;
             if (docs.length) {
-                rankings = docs[0];
+                mongoRankings = docs[0];
             }
 
             let getNewPlayers = true;
-            if (rankings) {
-                const timestamp = moment(rankings.timestamp);
+            if (mongoRankings) {
+                const timestamp = moment(mongoRankings.timestamp);
                 const hoursAgo = moment().diff(timestamp, 'hours');
 
-                if (hoursAgo >= 1) {
-                    getNewPlayers = true;
-                } else {
-                    getNewPlayers = false;
-                }
+                getNewPlayers = hoursAgo >= 1;
             }
 
-            if (getNewPlayers) {
+            if (getNewPlayers || force) {
                 const fpRankings = await this.fantasyPros.getPprRankings();
 
-                if (rankings) {
+                if (mongoRankings) {
                     this.logger.info(`Replaced rankings in db.`);
-                    const result = await this.collectionRankings.replaceOne({ _id: rankings._id }, fpRankings);
+                    const result = await this.collectionRankings.replaceOne({ _id: mongoRankings._id }, fpRankings);
                     this.rankingsSubject.next(result.ops[0]);
                 } else {
                     this.logger.info(`Inserted rankings in db.`);
@@ -156,16 +158,24 @@ export class PlayersManager {
                     for (const rankingsPosition of POSITIONS) {
                         for (const rankingAny of rankings[rankingsPosition]) {
                             const ranking = rankingAny as Ranking;
-                            const player = players.player.find(player => {
-                                const playerName = player.name.toLocaleLowerCase().replace('.', '').split(' ');
+                            const player = players.player.find(thisPlayer => {
+                                if (thisPlayer.team !== ranking.team) {
+                                    return false;
+                                }
+                                if (rankingsPosition === 'DST' && thisPlayer.position !== 'DST') {
+                                    return false;
+                                }
+
+                                const playerName = thisPlayer.name.toLocaleLowerCase().replace('.', '').split(' ');
                                 const rankingName = ranking.name.toLocaleLowerCase().replace('.', '').split(' ');
                                 for (let i = 0; i < Math.min(playerName.length, rankingName.length); i++) {
                                     const name1 = playerName[i];
-                                    const name2 = rankingName[i]
+                                    const name2 = rankingName[i];
                                     if (!(name1 === name2 || name1.startsWith(name2) || name2.startsWith(name1))) {
                                         return false;
                                     }
                                 }
+
                                 return true;
                             });
 
@@ -196,7 +206,7 @@ export class PlayersManager {
         }, 1000 * 60 * 60);
     }
 
-    async update() {
+    async update(): Promise<void> {
         try {
             this.logger.info('Updating MFL players in db.');
 
@@ -207,7 +217,7 @@ export class PlayersManager {
             }
 
             let getNewPlayers = true;
-            let since: moment.Moment | undefined = undefined;
+            let since: moment.Moment | undefined;
             if (players) {
                 const timestamp = moment(players.timestamp);
                 const hoursAgo = moment().diff(timestamp, 'hours');
@@ -220,6 +230,7 @@ export class PlayersManager {
                 }
             }
 
+            let forceUpdateRankings = false;
             if (getNewPlayers) {
                 const mflPlayers = await this.mfl.getPlayers(since);
 
@@ -236,10 +247,12 @@ export class PlayersManager {
                         this.logger.info(`Updated ${mflPlayers.player.length} players in db since ${since}.`);
                         const result = await this.collectionPlayers.replaceOne({ _id: mongoPlayers._id }, mongoPlayers);
                         this.playersSubject.next(result.ops[0]);
+                        forceUpdateRankings = true;
                     } else {
                         this.logger.info(`Inserted ${mflPlayers.player.length} players in db.`);
                         const result = await this.collectionPlayers.insertOne(mflPlayers);
                         this.playersSubject.next(result.ops[0]);
+                        forceUpdateRankings = true;
                     }
                 } else if (players) {
                     this.logger.info('Unable to update players, returning current players.');
@@ -250,7 +263,7 @@ export class PlayersManager {
                 this.playersSubject.next(players as Players);
             }
 
-            await this.updateRankings();
+            await this.updateRankings(forceUpdateRankings);
         } catch (error) {
             this.logger.error(`Error updating player manager: ${error}`);
             console.error(error);

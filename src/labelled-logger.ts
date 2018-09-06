@@ -6,19 +6,19 @@ export default class LabelledLogger {
         this.label = label;
     }
 
-    info(msg: any) {
+    info(msg: any): void {
         this.logger.info(`${this.label}: ${msg}`);
     }
 
-    warn(msg: any) {
+    warn(msg: any): void {
         this.logger.warn(`${this.label}: ${msg}`);
     }
 
-    error(msg: any) {
+    error(msg: any): void {
         this.logger.error(`${this.label}: ${msg}`);
     }
 
-    verbose(msg: any) {
+    verbose(msg: any): void {
         this.logger.verbose(`${this.label}: ${msg}`);
     }
 }

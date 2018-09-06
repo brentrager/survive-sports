@@ -32,6 +32,7 @@ const winstonLogger = createLogger({
 
 const logger = new LabelledLogger(winstonLogger, 'Main');
 
+// tslint:disable-next-line:no-floating-promises
 (async () => {
     try {
         // Connection URL
