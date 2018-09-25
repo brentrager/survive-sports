@@ -1,16 +1,31 @@
 version: "2"
 services:
-#  web:
-#    build: .
-#    ports:
-#    - "8080:8080"
-#    depends_on:
-#    - mongo
   mongo:
     image: mongo
+    container_name: survive-sports-mongo
     ports:
-    - "27017:27017"
+      - "27017:27017"
     volumes:
-    - data-volume:/data/db
+      - data-volume:/data/db
+    network_mode: nginx-proxy
+
+  survive-sports:
+    build: .
+    container_name: survive-sports
+    expose:
+      - 3000
+    restart:
+      always
+    environment:
+      VIRTUAL_HOST: survive-sports.com,www.survive-sports.com
+      LETSENCRYPT_HOST: survive-sports.com,www.survive-sports.com
+      LETSENCRYPT_EMAIL: brent.rager@gmail.com
+    network_mode: nginx-proxy
+
 volumes:
   data-volume:
+
+networks:
+  default:
+    external:
+      name: nginx-proxy
