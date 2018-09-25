@@ -5,6 +5,7 @@ services:
     container_name: survive-sports-mongo
     ports:
       - "27017:27017"
+    restart: always
     volumes:
       - data-volume:/data/db
     network_mode: nginx-proxy
