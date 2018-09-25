@@ -8,7 +8,6 @@ services:
     restart: always
     volumes:
       - data-volume:/data/db
-    network_mode: nginx-proxy
 
   survive-sports:
     build: .
@@ -21,7 +20,6 @@ services:
       VIRTUAL_HOST: survive-sports.com,www.survive-sports.com
       LETSENCRYPT_HOST: survive-sports.com,www.survive-sports.com
       LETSENCRYPT_EMAIL: brent.rager@gmail.com
-    network_mode: nginx-proxy
 
 volumes:
   data-volume:
