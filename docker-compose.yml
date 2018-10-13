@@ -10,8 +10,12 @@ services:
       - data-volume:/data/db
 
   survive-sports:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: survive-sports
+    depends_on:
+      - mongo
     ports:
       - "3000:3000"
     restart:
