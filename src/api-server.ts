@@ -24,7 +24,7 @@ export class ApiServer {
 
     private server = new hapi.Server({
         port: 3000,
-        host: 'localhost'
+        host: '0.0.0.0'
     });
 
     constructor(logger: Logger, private playersManager: PlayersManager) {
