@@ -1,5 +1,7 @@
 // tslint:disable:quotemark
 import * as hapi from 'hapi';
+import * as path from 'path';
+import * as inert from 'inert';
 import * as jwt from 'hapi-auth-jwt2';
 import * as jwksRsa from 'jwks-rsa';
 import { PlayersManager, PlayersByPosition } from './players-manager';
@@ -23,7 +25,12 @@ export class ApiServer {
     private playersByPosition: PlayersByPosition;
 
     private server = new hapi.Server({
-        port: 3000
+        port: 3000,
+        routes: {
+            files: {
+                relativeTo: path.join(__dirname, 'static')
+            }
+        }
     });
 
     constructor(logger: Logger, private playersManager: PlayersManager) {
@@ -36,6 +43,7 @@ export class ApiServer {
 
     async start(): Promise<void> {
         await this.server.register(jwt);
+        await this.server.register(inert);
         // see: http://Hapi.com/api#serverauthschemename-scheme
         this.server.auth.strategy('jwt', 'jwt', {
             key: jwksRsa.hapiJwt2Key({
@@ -52,8 +60,6 @@ export class ApiServer {
             validate: validateUser
         });
 
-        this.server.auth.default('jwt');
-
         this.server.route({
             method: 'GET',
             path: '/api/players',
@@ -62,6 +68,17 @@ export class ApiServer {
             },
             options: {
                 auth: 'jwt'
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
+            path: '/{param*}',
+            handler: {
+                directory: {
+                    path: 'static',
+                    index: ['index.html']
+                }
             }
         });
 
