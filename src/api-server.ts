@@ -28,7 +28,7 @@ export class ApiServer {
         port: 3000,
         routes: {
             files: {
-                relativeTo: path.join(__dirname, 'static')
+                relativeTo: path.join(__dirname, '../static')
             }
         }
     });
@@ -76,8 +76,9 @@ export class ApiServer {
             path: '/{param*}',
             handler: {
                 directory: {
-                    path: 'static',
-                    index: ['index.html']
+                    path: '.',
+                    redirectToSlash: true,
+                    index: true
                 }
             }
         });
