@@ -36,7 +36,7 @@ const logger = new LabelledLogger(winstonLogger, 'Main');
 (async () => {
     try {
         // Connection URL
-        const url = 'mongodb://localhost:27017';
+        const url = 'mongodb://survive-sports-mongo:27017';
 
         // Database Name
 
