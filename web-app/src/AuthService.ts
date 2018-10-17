@@ -12,8 +12,8 @@ export default class AuthService {
         this.authNotifier = new EventEmitter();
         this.auth0 = new auth0.WebAuth({
             domain: 'hard-g.auth0.com',
-            clientID: 'AgdamIzbP4ya164gs_kqeGP6clSpFqEv',
-            redirectUri: 'http://localhost:3000/callback',
+            clientID: 'rzCwuye9LrsiDmwdjI84CNiBgS7rcsty',
+            redirectUri: `${window.location.protocol}//${window.location.host}/login`,
             responseType: 'token id_token',
             scope: 'openid',
         });

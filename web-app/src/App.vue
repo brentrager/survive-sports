@@ -28,10 +28,7 @@
                         </div>
                     </li>
                 </ul>
-                <form class="form-inline my-2 my-lg-0">
-                    <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-                </form>
+                <button class="btn btn-outline-success my-2 my-sm-0" v-if="!authenticated" @click="auth.login()">Sign-In</button>
             </div>
         </nav>
 
@@ -53,32 +50,52 @@
     </div>
 </template>
 
+<script>
+    import AuthService from './AuthService';
+
+    const auth = new AuthService();
+    const authenticated = auth.authenticated;
+
+    export default {
+        name: 'app',
+        data() {
+            auth.authNotifier.on('authChange', (authState) => {
+                authenticated = authState.authenticated;
+            });
+            return {
+                auth,
+                authenticated,
+            };
+        },
+    };
+</script>
+
 <style>
-#app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-}
-#nav {
-    padding: 30px;
-}
+    #app {
+        font-family: 'Avenir', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+    }
+    #nav {
+        padding: 30px;
+    }
 
-#nav a {
-    font-weight: bold;
-    color: #2c3e50;
-}
+    #nav a {
+        font-weight: bold;
+        color: #2c3e50;
+    }
 
-#nav a.router-link-exact-active {
-    color: #42b983;
-}
+    #nav a.router-link-exact-active {
+        color: #42b983;
+    }
 
-body {
-    padding-top: 5rem;
-}
-.starter-template {
-    padding: 3rem 1.5rem;
-    text-align: center;
-}
+    body {
+        padding-top: 5rem;
+    }
+    .starter-template {
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
 </style>
