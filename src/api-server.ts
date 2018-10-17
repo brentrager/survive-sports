@@ -28,7 +28,7 @@ export class ApiServer {
         port: 3000,
         routes: {
             files: {
-                relativeTo: path.join(__dirname, '../static')
+                relativeTo: path.join(__dirname, '../web-app/dist')
             }
         }
     });
@@ -77,10 +77,20 @@ export class ApiServer {
             handler: {
                 directory: {
                     path: '.',
-                    redirectToSlash: true,
-                    index: true
+                    listing: false,
+                    index: ['index.html']
                 }
             }
+        });
+
+        // return index.html for everything else
+        this.server.ext('onPreResponse', (request, h) => {
+            const response = request.response as any;
+            if (response && response.isBoom && response.output && response.output.statusCode === 404) {
+                return h.file('index.html');
+            }
+
+            return h.continue;
         });
 
         await this.server.start();
