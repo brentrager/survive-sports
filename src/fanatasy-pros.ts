@@ -46,7 +46,7 @@ export class FantasyPros {
                     (rankings as any)[position] = [];
                     const curRankings = (rankings as any)[position];
                     const url = URLS_BY_POSITION[position];
-                    this.logger.info(`Getting rankes from ${url}`);
+                    this.logger.info(`Getting ranks from ${url}`);
                     const html = await axios.get(url);
                     const $ = cheerio.load(html.data);
 

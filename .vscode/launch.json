@@ -15,7 +15,10 @@
             "args": [
                 "${workspaceFolder}/src/index.ts"
             ],
-            "outputCapture": "std"
+            "outputCapture": "std",
+            "env": {
+                "DEV_MODE": "1"
+            }
         }
     ]
 }

@@ -156,11 +156,14 @@ export class PlayersManager {
                     const rankings: Rankings = this.rankingsSubject.getValue() as Rankings;
 
                     for (const rankingsPosition of POSITIONS) {
+                        this.logger.info(`Updating rankings for position: ${rankingsPosition}`);
                         for (const rankingAny of rankings[rankingsPosition]) {
                             const ranking = rankingAny as Ranking;
                             const player = players.player.find(thisPlayer => {
                                 if (thisPlayer.team !== ranking.team) {
-                                    return false;
+                                    if (!thisPlayer.team.startsWith(ranking.team)) {
+                                        return false;
+                                    }
                                 }
                                 if (rankingsPosition === 'DST' && thisPlayer.position !== 'DST') {
                                     return false;
@@ -241,8 +244,12 @@ export class PlayersManager {
                             const index = mongoPlayers.player.findIndex(x => x.id === mflPlayer.id);
                             if (index >= 0) {
                                 mongoPlayers.player[index] = mflPlayer as Player;
+                            } else {
+                                mongoPlayers.player.push(mflPlayer as Player);
                             }
                         }
+
+                        mongoPlayers.timestamp = mflPlayers.timestamp as number;
 
                         this.logger.info(`Updated ${mflPlayers.player.length} players in db since ${since}.`);
                         const result = await this.collectionPlayers.replaceOne({ _id: mongoPlayers._id }, mongoPlayers);
