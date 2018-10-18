@@ -1,14 +1,14 @@
 import auth0 from 'auth0-js';
-import { EventEmitter } from 'events';
+import { BehaviorSubject } from 'rxjs';
 import router from '../router';
 import * as log from 'loglevel';
 
 export default class AuthService {
-    public authNotifier: EventEmitter;
+    public authenticatedSubject: BehaviorSubject<boolean>;
     private auth0: auth0.WebAuth;
 
     constructor() {
-        this.authNotifier = new EventEmitter();
+        this.authenticatedSubject = new BehaviorSubject(false);
         this.auth0 = new auth0.WebAuth({
             domain: 'hard-g.auth0.com',
             clientID: 'rzCwuye9LrsiDmwdjI84CNiBgS7rcsty',
@@ -43,7 +43,7 @@ export default class AuthService {
             localStorage.setItem('access_token', authResult.accessToken);
             localStorage.setItem('id_token', authResult.idToken);
             localStorage.setItem('expires_at', expiresAt);
-            this.authNotifier.emit('authChange', { authenticated: true });
+            this.authenticatedSubject.next(true);
         }
     }
 
@@ -52,7 +52,7 @@ export default class AuthService {
         localStorage.removeItem('access_token');
         localStorage.removeItem('id_token');
         localStorage.removeItem('expires_at');
-        this.authNotifier.emit('authChange', false);
+        this.authenticatedSubject.next(false);
         // navigate to the home route
         router.replace('home');
     }

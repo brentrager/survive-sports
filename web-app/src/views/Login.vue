@@ -1,17 +1,13 @@
 <template>
-    <div class="spinner">
-        <img src="../assets/loading.svg" alt="loading"/>
-    </div>
+        <img class="mx-auto d-block" src="@/assets/loading.gif" alt="loading"/>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 
-@Component({
-    components: {
-        HelloWorld,
-    },
-})
-export default class Home extends Vue {}
+@Component({})
+export default class Login extends Vue {}
 </script>
+
+<style lang="scss" scoped>
+</style>

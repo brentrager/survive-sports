@@ -16,6 +16,7 @@
                 </li>
             </ul>
             <button class="btn btn-outline-banner my-2 my-sm-0" v-if="!authenticated" @click="auth.login()">Sign-In</button>
+            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="authenticated" @click="auth.logout()">Sign-Out</button>
         </div>
     </nav>
 </template>
@@ -32,8 +33,8 @@ export default class NavBar extends Vue {
     public authenticated = false;
 
     private data() {
-        this.auth.authNotifier.on('authChange', (authState) => {
-            this.authenticated = authState.authenticated;
+        this.auth.authenticatedSubject.subscribe((authenticated) => {
+            this.authenticated = authenticated;
         });
         return {
             authenticated: this.authenticated,
@@ -45,7 +46,7 @@ export default class NavBar extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
 button.btn-outline-banner {
-    @include button-outline-variant($banner-text-color, $text-color)
+    @include button-outline-variant($banner-text-color, $background-color)
 }
 
 nav {
@@ -55,5 +56,9 @@ nav {
 .navbar-dark a.navbar-brand {
     color: $logo-color;
     font-weight: bolder;
+}
+
+nav-link {
+    color: $background-color;
 }
 </style>
