@@ -10,6 +10,7 @@ module.exports = {
         preProcessor: 'scss',
         patterns: [
             path.resolve(__dirname, 'src/styles/*.scss'),
+            path.resolve(__dirname, 'node_modules/bootstrap/scss/bootstrap.scss'),
         ]
       }
     }

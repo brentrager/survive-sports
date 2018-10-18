@@ -1,11 +1,10 @@
 import auth0 from 'auth0-js';
 import { EventEmitter } from 'events';
-import router from './router';
+import router from '../router';
 import * as log from 'loglevel';
 
 export default class AuthService {
     public authNotifier: EventEmitter;
-    public authenticated = this.isAuthenticated();
     private auth0: auth0.WebAuth;
 
     constructor() {

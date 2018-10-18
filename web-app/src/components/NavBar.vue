@@ -15,36 +15,45 @@
                     <router-link active-class="active" to="/about" class="nav-link" exact>About</router-link>
                 </li>
             </ul>
-            <button class="btn btn-outline-success my-2 my-sm-0" v-if="!authenticated" @click="auth.login()">Sign-In</button>
+            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="!authenticated" @click="auth.login()">Sign-In</button>
         </div>
     </nav>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
+import AuthService from '../services/AuthService';
 
-@Component({ name: 'nav-bar'})
-export default class NavBar extends Vue {}
+@Component({
+    name: 'nav-bar',
+})
+export default class NavBar extends Vue {
+    @Prop() public auth!: AuthService;
+    public authenticated = false;
+
+    private data() {
+        this.auth.authNotifier.on('authChange', (authState) => {
+            this.authenticated = authState.authenticated;
+        });
+        return {
+            authenticated: this.authenticated,
+        };
+    }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
+button.btn-outline-banner {
+    @include button-outline-variant($banner-text-color, $text-color)
+}
+
 nav {
     background-color: $banner-color;
 }
 
-a.navbar-brand {
+.navbar-dark a.navbar-brand {
     color: $logo-color;
     font-weight: bolder;
-}
-
-nav button.btn-outline-success {
-    color: $banner-text-color;
-    border-color: $banner-text-color;
-}
-
-nav button.btn-outline-success:hover {
-    color: $text-color;
-    background-color: $banner-text-color;
 }
 </style>

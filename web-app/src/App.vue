@@ -1,7 +1,7 @@
 <template>
     <div id="app">
 
-        <nav-bar></nav-bar>
+        <nav-bar v-bind:auth="auth"></nav-bar>
 
         <main role="main" class="container">
 
@@ -11,32 +11,29 @@
     </div>
 </template>
 
-<script>
-    import AuthService from './AuthService';
-    import NavBar from './components/NavBar';
-
+<script lang="ts">
+    import { Component, Prop, Vue } from 'vue-property-decorator';
+    import NavBar from './components/NavBar.vue';
+    import AuthService from './services/AuthService';
     const auth = new AuthService();
-    const authenticated = auth.authenticated;
 
-    export default {
+    @Component({
         name: 'app',
-        data() {
-            auth.authNotifier.on('authChange', (authState) => {
-                authenticated = authState.authenticated;
-            });
-            return {
-                auth,
-                authenticated,
-            };
-        },
         components: {
             NavBar,
         },
-    };
+    })
+    export default class App extends Vue {
+        private data() {
+            return {
+                auth,
+            };
+        }
+    }
 </script>
 
 <style lang="scss">
-    @import '../node_modules/bootstrap/dist/css/bootstrap.css';
+    @import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
     body {
         padding-top: 5rem;
