@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+import * as mongoose from 'mongoose';
 import { createLogger, format, transports } from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 import { MFL } from './mfl';
@@ -36,12 +37,21 @@ const logger = new LabelledLogger(winstonLogger, 'Main');
 (async () => {
     try {
         // Connection URL
+        const dbName = 'survive-sports';
         const url = `mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017`;
 
+        // Connect mongoose
+        await mongoose.connect(`mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017/${dbName}`);
+        const mongooseConnection = mongoose.connection;
+        logger.info('Connected to mongoose');
+        mongooseConnection.on('error', error => {
+            logger.error(`Mongoose connection error: ${error}`);
+        });
+
+        // Connect mongoClient
         const mongoClient = await MongoClient.connect(url);
         logger.info('Connected to mongodb');
 
-        const dbName = 'survive-sports';
         const db = mongoClient.db(dbName);
 
         const mfl = new MFL(winstonLogger);

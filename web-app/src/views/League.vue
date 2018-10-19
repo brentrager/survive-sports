@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="league">
   </div>
 </template>
 
@@ -7,5 +7,5 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component({})
-export default class Home extends Vue {}
+export default class League extends Vue {}
 </script>

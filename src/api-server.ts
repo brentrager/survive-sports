@@ -8,6 +8,11 @@ import { AuthenticationClient } from 'auth0';
 import { PlayersManager, PlayersByPosition } from './players-manager';
 import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
+import { User, UserModel } from './models/user';
+import * as _ from 'lodash';
+
+const APP_METADATA = 'https://survive-sports.com/app_metadata';
+const USER_METADATA = 'https://survive-sports.com/user_metadata';
 
 async function validateUser(decoded: any, request: hapi.Request): Promise<any> {
     // This is a simple check that the `sub` claim
@@ -42,7 +47,7 @@ export class ApiServer {
         });
 
         this.auth0 = new AuthenticationClient({
-            domain: 'https://hard-g.auth0.com',
+            domain: 'hard-g.auth0.com',
             clientId: 'rzCwuye9LrsiDmwdjI84CNiBgS7rcsty'
         });
     }
@@ -82,9 +87,45 @@ export class ApiServer {
             method: 'GET',
             path: '/api/user',
             handler: async (req, res) => {
-                const prof = await this.auth0.getProfile((req.auth as any).token);
+                const creds = (req.auth.credentials as any).payload!;
+                const user: User = {
+                    id: creds.sub,
+                    email: creds.email,
+                    name: creds.name,
+                    roles: (APP_METADATA in creds && 'roles' in creds[APP_METADATA]) ? creds[APP_METADATA].roles : [],
+                    family_name: creds.family_name,
+                    given_name: creds.given_name,
+                    picture: creds.picture
+                };
 
-                return prof;
+                let userDoc = await UserModel.findOne({ id: user.id }).exec();
+
+                if (userDoc) {
+                    if (user.name !== userDoc.get('name') || user.email !== userDoc.get('email') || !_.isEqual(user.roles, userDoc.get('roles'))
+                        || user.family_name !== userDoc.get('family_name') || user.given_name !== userDoc.get('given_name')
+                        || user.picture !== userDoc.get('picture')) {
+                        userDoc.set('name', user.name);
+                        userDoc.set('email', user.email);
+                        userDoc.set('roles', user.roles);
+                        userDoc.set('family_name', user.family_name);
+                        userDoc.set('given_name', user.given_name);
+                        userDoc.set('picture', user.picture);
+                        await UserModel.replaceOne({ id: user.id }, userDoc).exec();
+                    }
+                } else {
+                    const newUser = new UserModel({
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        roles: user.roles,
+                        family_name: user.family_name,
+                        given_name: user.given_name,
+                        picture: user.picture
+                    });
+                    userDoc = await newUser.save();
+                }
+
+                return user;
             },
             options: {
                 auth: 'jwt'
