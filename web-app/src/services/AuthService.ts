@@ -1,14 +1,18 @@
 import auth0 from 'auth0-js';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, noop } from 'rxjs';
 import router from '../router';
 import * as log from 'loglevel';
+import axios, { AxiosAdapter, AxiosRequestConfig, AxiosBasicCredentials } from 'axios';
 
-export default class AuthService {
+class AuthService {
     public authenticatedSubject: BehaviorSubject<boolean>;
+    public userProfileSubject: BehaviorSubject<auth0.Auth0UserProfile | undefined>;
     private auth0: auth0.WebAuth;
+    private tokenRenewalTimeout: number | undefined;
 
     constructor() {
         this.authenticatedSubject = new BehaviorSubject(false);
+        this.userProfileSubject = new BehaviorSubject<auth0.Auth0UserProfile | undefined>(undefined);
         this.auth0 = new auth0.WebAuth({
             domain: 'hard-g.auth0.com',
             clientID: 'rzCwuye9LrsiDmwdjI84CNiBgS7rcsty',
@@ -16,6 +20,16 @@ export default class AuthService {
             responseType: 'token id_token',
             scope: 'openid',
         });
+
+        this.authenticatedSubject.subscribe(async (authenticated) => {
+            if (authenticated) {
+                const userProfile = await this.request('GET', '/api/user');
+                log.info(userProfile);
+            }
+        });
+
+        this.checkIsAuthenticated();
+        this.scheduleRenewal();
     }
 
     public login() {
@@ -44,6 +58,7 @@ export default class AuthService {
             localStorage.setItem('id_token', authResult.idToken);
             localStorage.setItem('expires_at', expiresAt);
             this.authenticatedSubject.next(true);
+            this.scheduleRenewal();
         }
     }
 
@@ -55,12 +70,73 @@ export default class AuthService {
         this.authenticatedSubject.next(false);
         // navigate to the home route
         router.replace('home');
+
+        clearTimeout(this.tokenRenewalTimeout);
     }
 
-    public isAuthenticated() {
-        // Check whether the current time is past the
-        // Access Token's expiry time
-        const expiresAt = JSON.parse(localStorage.getItem('expires_at') as string);
-        return new Date().getTime() < expiresAt;
+    public async request(method: string, url: string, data?: any) {
+        if (!this.isAuthenticated()) {
+            throw new Error('Not authenticated.');
+        }
+
+        const requestOptions: AxiosRequestConfig = {
+            method,
+            url,
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('id_token')}`,
+            },
+        };
+
+        if (data) {
+            requestOptions.data = data;
+        }
+
+        return axios.request(requestOptions);
+    }
+
+    private checkIsAuthenticated() {
+        this.authenticatedSubject.next(this.isAuthenticated());
+    }
+
+    private isAuthenticated() {
+        try {
+            // Check whether the current time is past the
+            // Access Token's expiry time
+            const expiresAt = JSON.parse(localStorage.getItem('expires_at') as string);
+            return new Date().getTime() < expiresAt;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private renewToken() {
+        this.auth0.checkSession({},
+            (err, result) => {
+                if (err) {
+                    log.error(err);
+                } else {
+                    this.setSession(result);
+                }
+            },
+        );
+    }
+
+    private scheduleRenewal() {
+        try {
+            const expiresAt = JSON.parse(localStorage.getItem('expires_at') as string);
+            const delay = expiresAt - Date.now();
+            if (delay > 0) {
+                this.tokenRenewalTimeout = setTimeout(() => {
+                    this.renewToken();
+                }, delay);
+            }
+        } catch (error) {
+            noop();
+        }
     }
 }
+
+const authService = new AuthService();
+(authService as any).AuthService = AuthService;
+
+export default authService;

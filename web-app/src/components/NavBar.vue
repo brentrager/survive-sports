@@ -15,28 +15,28 @@
                     <router-link active-class="active" to="/about" class="nav-link" exact>About</router-link>
                 </li>
             </ul>
-            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="!authenticated" @click="auth.login()">Sign-In</button>
-            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="authenticated" @click="auth.logout()">Sign-Out</button>
+            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="!authenticated" @click="authService.login()">Sign-In</button>
+            <button class="btn btn-outline-banner my-2 my-sm-0" v-if="authenticated" @click="authService.logout()">Sign-Out</button>
         </div>
     </nav>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
-import AuthService from '../services/AuthService';
+import { Component, Watch, Vue } from 'vue-property-decorator';
+import authService from '../services/AuthService';
 
 @Component({
     name: 'nav-bar',
 })
 export default class NavBar extends Vue {
-    @Prop() public auth!: AuthService;
     public authenticated = false;
 
     private data() {
-        this.auth.authenticatedSubject.subscribe((authenticated) => {
+        authService.authenticatedSubject.subscribe((authenticated) => {
             this.authenticated = authenticated;
         });
         return {
+            authService,
             authenticated: this.authenticated,
         };
     }
