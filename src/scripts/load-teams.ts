@@ -1,0 +1,243 @@
+/* tslint:disable:cyclomatic-complexity */
+import { MongoClient } from 'mongodb';
+import * as mongoose from 'mongoose';
+import { UserTeamsModel, UserTeams, UserTeam } from '../models/league';
+import { UserModel, User } from '../models/user';
+import { PlayersManager, PlayersByPosition, Player } from '../players-manager';
+import { createLogger, format, transports } from 'winston';
+import LabelledLogger from '../labelled-logger';
+import { MFL } from '../mfl';
+import { FantasyPros } from '../fanatasy-pros';
+import * as fuzz from 'fuzzball';
+import * as _ from 'lodash';
+
+const winstonLogger = createLogger({
+    format: format.combine(
+        format.colorize(),
+        format.timestamp(),
+        format.align(),
+        format.prettyPrint(),
+        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+    ),
+    transports: [
+        new transports.Console({
+            handleExceptions: true
+        })
+    ]
+});
+
+const logger = new LabelledLogger(winstonLogger, 'LoadTeams');
+
+function removePlayerById(id: string, players: Array<Player>): Array<Player> {
+    return players.filter((player) => {
+        return player.id !== id;
+    });
+}
+
+(async () => {
+    const dbName = 'survive-sports';
+    const url = `mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017`;
+
+    // Connect mongoose
+    await mongoose.connect(`mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017/${dbName}`);
+    const mongooseConnection = mongoose.connection;
+    logger.info('Connected to mongoose');
+    mongooseConnection.on('error', error => {
+        logger.error(`Mongoose connection error: ${error}`);
+    });
+
+    // Connect mongoClient
+    const mongoClient = await MongoClient.connect(url);
+    logger.info('Connected to mongodb');
+
+    const db = mongoClient.db(dbName);
+
+    const mfl = new MFL(winstonLogger);
+    const fantasyPros = new FantasyPros(winstonLogger);
+    const playersManager = new PlayersManager(winstonLogger, db, mfl, fantasyPros);
+    await playersManager.update();
+    const playersByPosition = playersManager.playersByPosition().getValue() as PlayersByPosition;
+
+    // Now load teams
+    const teams = [
+        {
+            name: 'Brent Rager',
+            teams: [
+                [
+                    { pos: 'QB', player: 'ANDY DALTON' },
+                    { pos: 'RB', player: 'JOE MIXON' },
+                    { pos: 'RB', player: 'JAMES CONNER' },
+                    { pos: 'WR', player: 'AJ GREEN' },
+                    { pos: 'WR', player: 'JOHN BROWN' },
+                    { pos: 'WR', player: 'Chris Hogan' },
+                    { pos: 'TE', player: 'DELANOE WALKER' },
+                    { pos: 'K', player: 'JUSTIN TUCKER' },
+                    { pos: 'DST', player: 'RAVENS' }
+                ],
+                [
+                    { pos: 'QB', player: 'ALEX SMITH' },
+                    { pos: 'RB', player: 'CHRIS THOMPSON' },
+                    { pos: 'RB', player: 'TJ YELDON' },
+                    { pos: 'WR', player: 'JUJU SMITH-SCHUSTER' },
+                    { pos: 'WR', player: 'DANTE PETTIS' },
+                    { pos: 'WR', player: 'JULIO JONES' },
+                    { pos: 'TE', player: 'JORDAN REED' },
+                    { pos: 'K', player: 'DUSTIN HOPKINS' },
+                    { pos: 'DST', player: 'CHARGERS' }
+                ],
+                [
+                    { pos: 'QB', player: 'PATRICK MALHOMES' },
+                    { pos: 'RB', player: 'Latavius Murray' },
+                    { pos: 'RB', player: 'Giovani BERNARD' },
+                    { pos: 'WR', player: 'WILL FULLER' },
+                    { pos: 'WR', player: 'ANTONIO BROWN' },
+                    { pos: 'WR', player: 'TYREEK HILL' },
+                    { pos: 'TE', player: 'TRAVIS KELCE' },
+                    { pos: 'K', player: 'JAKE ELLIOTT' },
+                    { pos: 'DST', player: 'VIKINGS' }
+                ],
+                [
+                    { pos: 'QB', player: 'Philip Rivers' },
+                    { pos: 'RB', player: 'Tevin Coleman' },
+                    { pos: 'RB', player: 'Alvin Kamara' },
+                    { pos: 'WR', player: 'Odell Beckham Jr' },
+                    { pos: 'WR', player: 'Michael Thomas' },
+                    { pos: 'WR', player: 'Keenan Allen' },
+                    { pos: 'TE', player: 'Eric Ebron' },
+                    { pos: 'K', player: 'Fairbairn' },
+                    { pos: 'DST', player: 'Jacksonville' }
+                ],
+                [
+                    { pos: 'QB', player: 'Ben Roethlisbeger' },
+                    { pos: 'RB', player: 'David Johnson' },
+                    { pos: 'RB', player: 'Christian McCaffrey' },
+                    { pos: 'WR', player: 'Adam Thielen' },
+                    { pos: 'WR', player: 'Brandin Cooks' },
+                    { pos: 'WR', player: 'Corey Davis' },
+                    { pos: 'TE', player: 'Jared Cook' },
+                    { pos: 'K', player: 'Matt Bryant' },
+                    { pos: 'DST', player: 'Tennessee' }
+                ],
+                [
+                    { pos: 'QB', player: 'Tom Brady' },
+                    { pos: 'RB', player: 'Sony Michel' },
+                    { pos: 'RB', player: 'Melvin Gordon' },
+                    { pos: 'WR', player: 'Chester Rogers' },
+                    { pos: 'WR', player: 'Mike Evans' },
+                    { pos: 'WR', player: 'Josh Gordon' },
+                    { pos: 'TE', player: 'Rob Gronkowski' },
+                    { pos: 'K', player: 'Gostkowski' },
+                    { pos: 'DST', player: 'Chicago Bears' }
+                ]
+            ]
+        }
+    ];
+
+    for (const team of teams) {
+        const userName = team.name;
+        const userTeamsData = team.teams;
+        let week = 1;
+
+        const userDoc = await UserModel.findOne({ name: userName });
+
+        if (userDoc) {
+            const userTeams = {} as UserTeams;
+            userTeams.userId = userDoc.get('id');
+            userTeams.teams = [];
+
+            for (const userTeamData of userTeamsData) {
+                const userTeam = {} as UserTeam;
+                userTeam.week = week;
+
+                for (const player of userTeamData) {
+                    const pos = player.pos;
+                    const playerName = player.player;
+
+                    const playersOfPosition = playersByPosition[pos];
+
+                    let foundPlayer: Player | undefined;
+                    for (const mflPlayer of playersOfPosition) {
+                        if (fuzz.partial_ratio(playerName, mflPlayer.name) > 85) {
+                            foundPlayer = mflPlayer;
+                            break;
+                        }
+                    }
+
+                    if (!foundPlayer) {
+                        logger.info(`Unable to match ${playerName}`);
+                    } else {
+                        logger.info(`Matched ${playerName} to ${foundPlayer.name}`);
+
+                        if (pos === 'QB') {
+                            userTeam.QB = foundPlayer.id;
+                        } else if (pos === 'TE') {
+                            userTeam.TE = foundPlayer.id;
+                        } else if (pos === 'K') {
+                            userTeam.K = foundPlayer.id;
+                        } else if (pos === 'DST') {
+                            userTeam.DST = foundPlayer.id;
+                        } else if (pos === 'RB') {
+                            if (!userTeam.RB) {
+                                userTeam.RB = [];
+                            }
+
+                            userTeam.RB.push(foundPlayer.id);
+                        } else if (pos === 'WR') {
+                            if (!userTeam.WR) {
+                                userTeam.WR = [];
+                            }
+
+                            userTeam.WR.push(foundPlayer.id);
+                        }
+                    }
+                }
+
+                userTeams.teams.push(userTeam);
+
+                week++;
+            }
+
+            const userTeamModel = new UserTeamsModel(userTeams);
+            const userTeamDoc = await userTeamModel.save();
+        }
+    }
+
+    const userTeamsDocs = await UserTeamsModel.find({});
+
+    if (userTeamsDocs) {
+        for (const userTeamsDoc of userTeamsDocs) {
+            const userTeamsJson = userTeamsDoc.toObject() as UserTeams;
+
+            const userId = userTeamsJson.userId;
+            const userDoc = await UserModel.findOne({ id: userId });
+
+            if (userDoc) {
+                const userJson = userDoc.toObject() as User;
+                logger.info(`Printing Rankings for ${userJson.name}`);
+                const myPlayersByPosition = _.clone(playersByPosition);
+
+                const myTeams = userTeamsJson.teams;
+
+                for (const team of myTeams) {
+                    myPlayersByPosition['QB'] = removePlayerById(team.QB, myPlayersByPosition['QB']);
+                    myPlayersByPosition['TE'] = removePlayerById(team.TE, myPlayersByPosition['TE']);
+                    myPlayersByPosition['K'] = removePlayerById(team.K, myPlayersByPosition['K']);
+                    myPlayersByPosition['DST'] = removePlayerById(team.DST, myPlayersByPosition['DST']);
+
+                    for (const rb of team.RB) {
+                        myPlayersByPosition['RB'] = removePlayerById(rb, myPlayersByPosition['RB']);
+                    }
+
+                    for (const wr of team.WR) {
+                        myPlayersByPosition['WR'] = removePlayerById(wr, myPlayersByPosition['WR']);
+                    }
+                }
+
+                for (const pos of ['QB', 'RB', 'WR', 'TE', 'K', 'DST']) {
+                    logger.info(`Printing rankings for ${pos}`);
+                    logger.info(JSON.stringify(myPlayersByPosition[pos].slice(0, 30).map(x => x.name), null, 4));
+                }
+            }
+        }
+    }
+})();

@@ -19,6 +19,22 @@
             "env": {
                 "DEV_MODE": "1"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Script",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "args": [
+                "${workspaceFolder}/src/scripts/load-teams.ts"
+            ],
+            "outputCapture": "std",
+            "env": {
+                "DEV_MODE": "1"
+            }
         }
     ]
 }

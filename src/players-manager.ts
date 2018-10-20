@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { BehaviorSubject } from 'rxjs';
 import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
+import * as fuzz from 'fuzzball';
 
 const POSITIONS = new Set([
     'QB',
@@ -169,13 +170,28 @@ export class PlayersManager {
                                     return false;
                                 }
 
-                                const playerName = thisPlayer.name.toLocaleLowerCase().replace('.', '').split(' ');
-                                const rankingName = ranking.name.toLocaleLowerCase().replace('.', '').split(' ');
+                                let nameMatch1 = true;
+                                const playerName = thisPlayer.name.toLocaleLowerCase().replace('.', '');
+                                const rankingName = ranking.name.toLocaleLowerCase().replace('.', '');
+                                const playerNameArray = playerName.split(' ');
+                                const rankingNameArray = rankingName.split(' ');
                                 for (let i = 0; i < Math.min(playerName.length, rankingName.length); i++) {
                                     const name1 = playerName[i];
                                     const name2 = rankingName[i];
                                     if (!(name1 === name2 || name1.startsWith(name2) || name2.startsWith(name1))) {
+                                        nameMatch1 = false;
+                                        break;
+                                    }
+                                }
+
+                                if (!nameMatch1) {
+                                    // Last try, fuzzy matching
+                                    const ratio = fuzz.partial_ratio(playerName, rankingName);
+
+                                    if (ratio < 90) {
                                         return false;
+                                    } else {
+                                        this.logger.info(`Fuzzy matched '${playerName}' and '${rankingName}'`);
                                     }
                                 }
 
