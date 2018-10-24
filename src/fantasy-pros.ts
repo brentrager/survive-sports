@@ -1,4 +1,3 @@
-import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
@@ -34,8 +33,8 @@ export interface Rankings {
 export class FantasyPros {
     private logger: LabelledLogger;
 
-    constructor(logger: Logger) {
-        this.logger = new LabelledLogger(logger, 'FantasyPros');
+    constructor() {
+        this.logger = new LabelledLogger('FantasyPros');
     }
 
     async getPprRankings(): Promise<Rankings> {

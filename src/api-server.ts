@@ -1,15 +1,16 @@
 // tslint:disable:quotemark
 import * as hapi from 'hapi';
+import * as Boom from 'boom';
 import * as path from 'path';
 import * as inert from 'inert';
 import * as jwt from 'hapi-auth-jwt2';
 import * as jwksRsa from 'jwks-rsa';
 import { AuthenticationClient } from 'auth0';
 import { PlayersManager, PlayersByPosition } from './players-manager';
-import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
 import { User, UserModel } from './models/user';
 import * as _ from 'lodash';
+import { UserTeamsModel, UserTeams } from './models/league';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -39,8 +40,8 @@ export class ApiServer {
         }
     });
 
-    constructor(logger: Logger, private playersManager: PlayersManager) {
-        this.logger = new LabelledLogger(logger, 'ApiServer');
+    constructor(private playersManager: PlayersManager) {
+        this.logger = new LabelledLogger('ApiServer');
 
         this.playersManager.playersByPosition().subscribe(playersByPosition => {
             this.playersByPosition = playersByPosition as PlayersByPosition;
@@ -75,7 +76,7 @@ export class ApiServer {
         this.server.route({
             method: 'GET',
             path: '/api/players',
-            handler: async (req, res) => {
+            handler: async (req, h) => {
                 return this.playersByPosition;
             },
             options: {
@@ -85,8 +86,34 @@ export class ApiServer {
 
         this.server.route({
             method: 'GET',
+            path: '/api/user/teams',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const userTeamsDoc = await UserTeamsModel.findOne({ userId: user.id }).exec();
+
+                if (userTeamsDoc) {
+                    const userTeams: UserTeams = userTeamsDoc.toObject();
+
+                    return userTeams;
+                } else {
+                    throw Boom.notFound('teams for user not found');
+                }
+            },
+            options: {
+                auth: 'jwt'
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
             path: '/api/user',
-            handler: async (req, res) => {
+            handler: async (req, h) => {
                 const creds = (req.auth.credentials as any).payload!;
                 const user: User = {
                     id: creds.sub,
@@ -98,19 +125,19 @@ export class ApiServer {
                     picture: creds.picture
                 };
 
-                let userDoc = await UserModel.findOne({ id: user.id }).exec();
+                let foundUser = await ApiServer.getUser(creds);
 
-                if (userDoc) {
-                    if (user.name !== userDoc.get('name') || user.email !== userDoc.get('email') || !_.isEqual(user.roles, userDoc.get('roles'))
-                        || user.family_name !== userDoc.get('family_name') || user.given_name !== userDoc.get('given_name')
-                        || user.picture !== userDoc.get('picture')) {
-                        userDoc.set('name', user.name);
-                        userDoc.set('email', user.email);
-                        userDoc.set('roles', user.roles);
-                        userDoc.set('family_name', user.family_name);
-                        userDoc.set('given_name', user.given_name);
-                        userDoc.set('picture', user.picture);
-                        await UserModel.replaceOne({ id: user.id }, userDoc).exec();
+                if (foundUser) {
+                    if (user.name !== foundUser.name || user.email !== foundUser.email || !_.isEqual(user.roles, foundUser.roles)
+                        || user.family_name !== foundUser.family_name || user.given_name !== foundUser.given_name
+                        || user.picture !== foundUser.picture) {
+                        foundUser.name = user.name;
+                        foundUser.email = user.email;
+                        foundUser.roles = user.roles;
+                        foundUser.family_name = user.family_name;
+                        foundUser.given_name = user.given_name;
+                        foundUser.picture = user.picture;
+                        await UserModel.replaceOne({ id: user.id }, foundUser).exec();
                     }
                 } else {
                     const newUser = new UserModel({
@@ -122,10 +149,10 @@ export class ApiServer {
                         given_name: user.given_name,
                         picture: user.picture
                     });
-                    userDoc = await newUser.save();
+                    foundUser = (await newUser.save()).toObject();
                 }
 
-                return user;
+                return foundUser;
             },
             options: {
                 auth: 'jwt'
@@ -157,5 +184,21 @@ export class ApiServer {
         await this.server.start();
 
         this.logger.info(`Listening on ${this.server.settings.port as string}`);
+    }
+
+    private static async getUser(creds: any): Promise<User | undefined> {
+        let user: User | undefined;
+
+        if (creds && creds.sub) {
+            const userId = creds.sub;
+
+            const userDoc = await UserModel.findOne({ id: userId }).exec();
+
+            if (userDoc) {
+                user = userDoc.toObject() as User;
+            }
+        }
+
+        return user;
     }
 }

@@ -1,37 +1,13 @@
 import { MongoClient } from 'mongodb';
 import * as mongoose from 'mongoose';
-import { createLogger, format, transports } from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+// import * as DailyRotateFile from 'winston-daily-rotate-file';
 import { MFL } from './mfl';
 import { PlayersManager } from './players-manager';
 import { ApiServer } from './api-server';
-import { FantasyPros } from './fanatasy-pros';
+import { FantasyPros } from './fantasy-pros';
 import LabelledLogger from './labelled-logger';
 
-const winstonLogger = createLogger({
-    format: format.combine(
-        format.colorize(),
-        format.timestamp(),
-        format.align(),
-        format.prettyPrint(),
-        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
-    ),
-    transports: [
-        new DailyRotateFile({
-            filename: 'survive-sports-%DATE%.log',
-            datePattern: 'YYYY-MM-DD-HH',
-            zippedArchive: true,
-            maxSize: '20m',
-            maxFiles: '7d',
-            handleExceptions: true
-        }),
-        new transports.Console({
-            handleExceptions: true
-        })
-    ]
-});
-
-const logger = new LabelledLogger(winstonLogger, 'Main');
+const logger = new LabelledLogger('Main');
 
 // tslint:disable-next-line:no-floating-promises
 (async () => {
@@ -41,7 +17,7 @@ const logger = new LabelledLogger(winstonLogger, 'Main');
         const url = `mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017`;
 
         // Connect mongoose
-        await mongoose.connect(`mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017/${dbName}`);
+        await mongoose.connect(`${url}/${dbName}`, { useNewUrlParser: true, useCreateIndex: true } as any);
         const mongooseConnection = mongoose.connection;
         logger.info('Connected to mongoose');
         mongooseConnection.on('error', error => {
@@ -49,17 +25,17 @@ const logger = new LabelledLogger(winstonLogger, 'Main');
         });
 
         // Connect mongoClient
-        const mongoClient = await MongoClient.connect(url);
+        const mongoClient = await MongoClient.connect(url, { useNewUrlParser: true });
         logger.info('Connected to mongodb');
 
         const db = mongoClient.db(dbName);
 
-        const mfl = new MFL(winstonLogger);
-        const fantasyPros = new FantasyPros(winstonLogger);
-        const playersManager = new PlayersManager(winstonLogger, db, mfl, fantasyPros);
+        const mfl = new MFL();
+        const fantasyPros = new FantasyPros();
+        const playersManager = new PlayersManager(db, mfl, fantasyPros);
         await playersManager.update();
 
-        const apiServer = new ApiServer(winstonLogger, playersManager);
+        const apiServer = new ApiServer(playersManager);
         await apiServer.start();
     } catch (error) {
         logger.error(`General error: ${error}`);

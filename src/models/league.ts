@@ -30,4 +30,4 @@ export const UserTeamsSchema = new mongoose.Schema({
     ]
 });
 
-export const UserTeamsModel = mongoose.model('Team', UserTeamsSchema);
+export const UserTeamsModel = mongoose.model('userTeams', UserTeamsSchema);

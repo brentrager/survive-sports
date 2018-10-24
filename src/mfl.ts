@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { Logger } from 'winston';
 import * as moment from 'moment';
 import LabelledLogger from './labelled-logger';
 
@@ -25,8 +24,8 @@ export interface Players {
 export class MFL {
     private logger: LabelledLogger;
 
-    constructor(logger: Logger) {
-        this.logger = new LabelledLogger(logger, 'MFL');
+    constructor() {
+        this.logger = new LabelledLogger('MFL');
     }
 
     async getPlayers(since?: moment.Moment): Promise<Players | undefined> {

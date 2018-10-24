@@ -23,13 +23,13 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Script",
+            "name": "Launch This Script",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
             ],
             "args": [
-                "${workspaceFolder}/src/scripts/load-teams.ts"
+                "${file}"
             ],
             "outputCapture": "std",
             "env": {

@@ -4,29 +4,13 @@ import * as mongoose from 'mongoose';
 import { UserTeamsModel, UserTeams, UserTeam } from '../models/league';
 import { UserModel, User } from '../models/user';
 import { PlayersManager, PlayersByPosition, Player } from '../players-manager';
-import { createLogger, format, transports } from 'winston';
 import LabelledLogger from '../labelled-logger';
 import { MFL } from '../mfl';
-import { FantasyPros } from '../fanatasy-pros';
+import { FantasyPros } from '../fantasy-pros';
 import * as fuzz from 'fuzzball';
 import * as _ from 'lodash';
 
-const winstonLogger = createLogger({
-    format: format.combine(
-        format.colorize(),
-        format.timestamp(),
-        format.align(),
-        format.prettyPrint(),
-        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
-    ),
-    transports: [
-        new transports.Console({
-            handleExceptions: true
-        })
-    ]
-});
-
-const logger = new LabelledLogger(winstonLogger, 'LoadTeams');
+const logger = new LabelledLogger('LoadTeams');
 
 function removePlayerById(id: string, players: Array<Player>): Array<Player> {
     return players.filter((player) => {
@@ -39,7 +23,7 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
     const url = `mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017`;
 
     // Connect mongoose
-    await mongoose.connect(`mongodb://${process.env.DEV_MODE ? 'localhost' : 'survive-sports-mongo'}:27017/${dbName}`);
+    await mongoose.connect(`${url}/${dbName}`, { useNewUrlParser: true, useCreateIndex: true } as any);
     const mongooseConnection = mongoose.connection;
     logger.info('Connected to mongoose');
     mongooseConnection.on('error', error => {
@@ -47,14 +31,14 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
     });
 
     // Connect mongoClient
-    const mongoClient = await MongoClient.connect(url);
+    const mongoClient = await MongoClient.connect(url, { useNewUrlParser: true });
     logger.info('Connected to mongodb');
 
     const db = mongoClient.db(dbName);
 
-    const mfl = new MFL(winstonLogger);
-    const fantasyPros = new FantasyPros(winstonLogger);
-    const playersManager = new PlayersManager(winstonLogger, db, mfl, fantasyPros);
+    const mfl = new MFL();
+    const fantasyPros = new FantasyPros();
+    const playersManager = new PlayersManager(db, mfl, fantasyPros);
     await playersManager.update();
     const playersByPosition = playersManager.playersByPosition().getValue() as PlayersByPosition;
 
@@ -128,6 +112,17 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
                     { pos: 'TE', player: 'Rob Gronkowski' },
                     { pos: 'K', player: 'Gostkowski' },
                     { pos: 'DST', player: 'Chicago Bears' }
+                ],
+                [
+                    { pos: 'QB', player: 'Matt Ryan' },
+                    { pos: 'RB', player: 'Philip Lindsay' },
+                    { pos: 'RB', player: 'Todd Gurley' },
+                    { pos: 'WR', player: 'DeAndre Hopkins' },
+                    { pos: 'WR', player: 'Emmanuel Sanders' },
+                    { pos: 'WR', player: 'Robert Woods' },
+                    { pos: 'TE', player: 'Ricky Seals-Jones' },
+                    { pos: 'K', player: 'Harrison Butker' },
+                    { pos: 'DST', player: 'Indianapolis Colts' }
                 ]
             ]
         }
@@ -240,4 +235,7 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
             }
         }
     }
+
+    mongoClient.close();
+    mongoose.disconnect();
 })();

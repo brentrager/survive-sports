@@ -1,11 +1,10 @@
 // tslint:disable:quotemark
 import { Db, Collection } from 'mongodb';
 import * as mflTypes from './mfl';
-import * as fantasyProsTypes from './fanatasy-pros';
+import * as fantasyProsTypes from './fantasy-pros';
 import * as moment from 'moment';
 // tslint:disable-next-line:import-blacklist
 import { BehaviorSubject } from 'rxjs';
-import { Logger } from 'winston';
 import LabelledLogger from './labelled-logger';
 import * as fuzz from 'fuzzball';
 
@@ -77,8 +76,8 @@ export class PlayersManager {
         return this.playersByPositionSubject;
     }
 
-    constructor(logger: Logger, private db: Db, private mfl: mflTypes.MFL, private fantasyPros: fantasyProsTypes.FantasyPros) {
-        this.logger = new LabelledLogger(logger, 'PlayersManager');
+    constructor(private db: Db, private mfl: mflTypes.MFL, private fantasyPros: fantasyProsTypes.FantasyPros) {
+        this.logger = new LabelledLogger('PlayersManager');
         this.collectionPlayers = this.db.collection('players');
         this.collectionRankings = this.db.collection('rankings');
 
@@ -175,9 +174,9 @@ export class PlayersManager {
                                 const rankingName = ranking.name.toLocaleLowerCase().replace('.', '');
                                 const playerNameArray = playerName.split(' ');
                                 const rankingNameArray = rankingName.split(' ');
-                                for (let i = 0; i < Math.min(playerName.length, rankingName.length); i++) {
-                                    const name1 = playerName[i];
-                                    const name2 = rankingName[i];
+                                for (let i = 0; i < Math.min(playerNameArray.length, rankingNameArray.length); i++) {
+                                    const name1 = playerNameArray[i];
+                                    const name2 = rankingNameArray[i];
                                     if (!(name1 === name2 || name1.startsWith(name2) || name2.startsWith(name1))) {
                                         nameMatch1 = false;
                                         break;
