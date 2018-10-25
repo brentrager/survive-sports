@@ -1,9 +1,9 @@
 /* tslint:disable:cyclomatic-complexity */
 import { MongoClient } from 'mongodb';
 import * as mongoose from 'mongoose';
-import { UserTeamsModel, UserTeams, UserTeam } from '../models/league';
+import { UserTeamsModel, UserTeams, UserTeam, PlayersByPosition, Player, POSITIONS } from '../models/league';
 import { UserModel, User } from '../models/user';
-import { PlayersManager, PlayersByPosition, Player } from '../players-manager';
+import { PlayersManager } from '../players-manager';
 import LabelledLogger from '../labelled-logger';
 import { MFL } from '../mfl';
 import { FantasyPros } from '../fantasy-pros';
@@ -16,6 +16,10 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
     return players.filter((player) => {
         return player.id !== id;
     });
+}
+
+function getPlayersByPosition(players: Array<Player>, position: string): Array<Player> {
+    return players.filter(value => value.position === position);
 }
 
 (async () => {
@@ -41,6 +45,8 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
     const playersManager = new PlayersManager(db, mfl, fantasyPros);
     await playersManager.update();
     const playersByPosition = playersManager.playersByPosition().getValue() as PlayersByPosition;
+
+    await UserTeamsModel.deleteMany({}).exec();
 
     // Now load teams
     const teams = [
@@ -143,6 +149,7 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
             for (const userTeamData of userTeamsData) {
                 const userTeam = {} as UserTeam;
                 userTeam.week = week;
+                userTeam.team = [];
 
                 for (const player of userTeamData) {
                     const pos = player.pos;
@@ -152,7 +159,7 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
 
                     let foundPlayer: Player | undefined;
                     for (const mflPlayer of playersOfPosition) {
-                        if (fuzz.partial_ratio(playerName, mflPlayer.name) > 85) {
+                        if (mflPlayer.name && fuzz.partial_ratio(playerName, mflPlayer.name) > 85) {
                             foundPlayer = mflPlayer;
                             break;
                         }
@@ -163,27 +170,11 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
                     } else {
                         logger.info(`Matched ${playerName} to ${foundPlayer.name}`);
 
-                        if (pos === 'QB') {
-                            userTeam.QB = foundPlayer.id;
-                        } else if (pos === 'TE') {
-                            userTeam.TE = foundPlayer.id;
-                        } else if (pos === 'K') {
-                            userTeam.K = foundPlayer.id;
-                        } else if (pos === 'DST') {
-                            userTeam.DST = foundPlayer.id;
-                        } else if (pos === 'RB') {
-                            if (!userTeam.RB) {
-                                userTeam.RB = [];
-                            }
-
-                            userTeam.RB.push(foundPlayer.id);
-                        } else if (pos === 'WR') {
-                            if (!userTeam.WR) {
-                                userTeam.WR = [];
-                            }
-
-                            userTeam.WR.push(foundPlayer.id);
-                        }
+                        const playerToAdd: Player = {
+                            id: foundPlayer.id,
+                            position: pos
+                        };
+                        userTeam.team.push(playerToAdd);
                     }
                 }
 
@@ -214,21 +205,14 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
                 const myTeams = userTeamsJson.teams;
 
                 for (const team of myTeams) {
-                    myPlayersByPosition['QB'] = removePlayerById(team.QB, myPlayersByPosition['QB']);
-                    myPlayersByPosition['TE'] = removePlayerById(team.TE, myPlayersByPosition['TE']);
-                    myPlayersByPosition['K'] = removePlayerById(team.K, myPlayersByPosition['K']);
-                    myPlayersByPosition['DST'] = removePlayerById(team.DST, myPlayersByPosition['DST']);
-
-                    for (const rb of team.RB) {
-                        myPlayersByPosition['RB'] = removePlayerById(rb, myPlayersByPosition['RB']);
-                    }
-
-                    for (const wr of team.WR) {
-                        myPlayersByPosition['WR'] = removePlayerById(wr, myPlayersByPosition['WR']);
+                    for (const position of Array.from(POSITIONS)) {
+                        for (const playerInPosition of getPlayersByPosition(team.team, position)) {
+                            myPlayersByPosition[position] = removePlayerById(playerInPosition.id, myPlayersByPosition[position]);
+                        }
                     }
                 }
 
-                for (const pos of ['QB', 'RB', 'WR', 'TE', 'K', 'DST']) {
+                for (const pos of POSITIONS) {
                     logger.info(`Printing rankings for ${pos}`);
                     logger.info(JSON.stringify(myPlayersByPosition[pos].slice(0, 30).map(x => x.name), null, 4));
                 }
@@ -236,6 +220,6 @@ function removePlayerById(id: string, players: Array<Player>): Array<Player> {
         }
     }
 
-    mongoClient.close();
-    mongoose.disconnect();
+    await mongoClient.close();
+    await mongoose.disconnect();
 })();

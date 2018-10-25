@@ -7,61 +7,9 @@ import * as moment from 'moment';
 import { BehaviorSubject } from 'rxjs';
 import LabelledLogger from './labelled-logger';
 import * as fuzz from 'fuzzball';
+import { Rankings, Players, PlayersById, PlayersByPosition, Player, Ranking, POSITIONS } from './models/league';
 
-const POSITIONS = new Set([
-    'QB',
-    'RB',
-    'WR',
-    'TE',
-    'K',
-    'DST'
-]);
-
-export interface Ranking {
-    ranking: number;
-    name: string;
-    team: string;
-    opp: string;
-    gameTime: string;
-}
-
-export interface Rankings {
-    QB: Ranking;
-    RB: Ranking;
-    WR: Ranking;
-    TE: Ranking;
-    K: Ranking;
-    DST: Ranking;
-    timestamp: string;
-    _id: any;
-    [position: string]: Ranking | string | any;
-}
-
-export interface RankingByPosition {
-    [position: string]: Ranking;
-}
-
-export interface Player {
-    id: string;
-    position: string;
-    name: string;
-    team: string;
-    ranking?: RankingByPosition;
-}
-
-export interface Players {
-    timestamp: number;
-    player: Array<Player>;
-    _id: any;
-}
-
-export interface PlayersById {
-    [id: string]: Player;
-}
-
-export interface PlayersByPosition {
-    [position: string]: Array<Player>;
-}
+const POSITIONS_SET = new Set(POSITIONS);
 
 export class PlayersManager {
     private logger: LabelledLogger;
@@ -74,6 +22,10 @@ export class PlayersManager {
 
     playersByPosition(): BehaviorSubject<PlayersByPosition | undefined> {
         return this.playersByPositionSubject;
+    }
+
+    playersById(): BehaviorSubject<PlayersById | undefined> {
+        return this.playersByIdSubject;
     }
 
     constructor(private db: Db, private mfl: mflTypes.MFL, private fantasyPros: fantasyProsTypes.FantasyPros) {
@@ -90,7 +42,7 @@ export class PlayersManager {
                 }, {} as PlayersById));
 
                 const playersByPosition = players.player.reduce((result: PlayersByPosition, player: Player) => {
-                    if ('position' in player && POSITIONS.has(player.position)) {
+                    if ('position' in player && POSITIONS_SET.has(player.position)) {
                         if (!(player.position in result)) {
                             result[player.position] = [];
                         }
@@ -161,11 +113,15 @@ export class PlayersManager {
                             const ranking = rankingAny as Ranking;
                             const player = players.player.find(thisPlayer => {
                                 if (thisPlayer.team !== ranking.team) {
-                                    if (!thisPlayer.team.startsWith(ranking.team)) {
+                                    if (thisPlayer.team && !thisPlayer.team.startsWith(ranking.team)) {
                                         return false;
                                     }
                                 }
                                 if (rankingsPosition === 'DST' && thisPlayer.position !== 'DST') {
+                                    return false;
+                                }
+
+                                if (!thisPlayer.name) {
                                     return false;
                                 }
 

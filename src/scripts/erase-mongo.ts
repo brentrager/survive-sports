@@ -1,5 +1,8 @@
 import { MongoClient } from 'mongodb';
 import LabelledLogger from '../labelled-logger';
+import { UserModel } from '../models/user';
+import { UserTeamsModel } from '../models/league';
+import * as mongoose from 'mongoose';
 
 const logger = new LabelledLogger('EraseMongo');
 
@@ -8,15 +11,23 @@ const logger = new LabelledLogger('EraseMongo');
     const mongoClient = await MongoClient.connect(url, { useNewUrlParser: true });
     const dbName = 'survive-sports';
     const db = mongoClient.db(dbName);
+    logger.info('Connected to mongodb');
 
-    db.collection('players').deleteMany({});
-    db.collection('rankings').deleteMany({});
-    db.collection('User').deleteMany({});
-    db.collection('Team').deleteMany({});
-    db.collection('user').deleteMany({});
-    db.collection('userTeams').deleteMany({});
+    // Connect mongoose
+    await mongoose.connect(`${url}/${dbName}`, { useNewUrlParser: true, useCreateIndex: true } as any);
+    const mongooseConnection = mongoose.connection;
+    logger.info('Connected to mongoose');
+    mongooseConnection.on('error', error => {
+        logger.error(`Mongoose connection error: ${error}`);
+    });
+
+    await db.collection('players').deleteMany({});
+    await db.collection('rankings').deleteMany({});
+    await UserModel.deleteMany({}).exec();
+    await UserTeamsModel.deleteMany({}).exec();
 
     logger.info('Mongo erased.');
 
-    mongoClient.close();
+    await mongoClient.close();
+    await mongoose.disconnect();
 })();

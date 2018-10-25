@@ -2,6 +2,7 @@ import LabelledLogger from './labelled-logger';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 import * as moment from 'moment';
+import { Rankings } from './models/league';
 
 const URLS_BY_POSITION: any = {
     QB: 'https://www.fantasypros.com/nfl/rankings/qb.php',
@@ -11,24 +12,6 @@ const URLS_BY_POSITION: any = {
     K: 'https://www.fantasypros.com/nfl/rankings/k.php',
     DST: 'https://www.fantasypros.com/nfl/rankings/dst.php'
 };
-
-export interface Ranking {
-    ranking: number;
-    name: string;
-    team: string;
-    opp: string;
-    gameTime: string;
-}
-
-export interface Rankings {
-    QB: Ranking;
-    RB: Ranking;
-    WR: Ranking;
-    TE: Ranking;
-    K: Ranking;
-    DST: Ranking;
-    timestamp: string;
-}
 
 export class FantasyPros {
     private logger: LabelledLogger;

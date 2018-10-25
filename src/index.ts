@@ -6,6 +6,7 @@ import { PlayersManager } from './players-manager';
 import { ApiServer } from './api-server';
 import { FantasyPros } from './fantasy-pros';
 import LabelledLogger from './labelled-logger';
+import { UserTeamsManager } from './user-teams-manager';
 
 const logger = new LabelledLogger('Main');
 
@@ -35,7 +36,9 @@ const logger = new LabelledLogger('Main');
         const playersManager = new PlayersManager(db, mfl, fantasyPros);
         await playersManager.update();
 
-        const apiServer = new ApiServer(playersManager);
+        const userTeamsManager = new UserTeamsManager(playersManager);
+
+        const apiServer = new ApiServer(playersManager, userTeamsManager);
         await apiServer.start();
     } catch (error) {
         logger.error(`General error: ${error}`);

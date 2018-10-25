@@ -1,5 +1,10 @@
 <template>
-    <div class="team">
+    <div class="team container">
+        <div class="row">
+            <div class="col-sm-12 col-md-6 col-lg-4" v-for="team in teams.teams" :key="team.week">
+                Week {{ team.week }}
+            </div>
+        </div>
     </div>
 </template>
 

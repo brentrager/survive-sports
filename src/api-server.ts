@@ -6,11 +6,12 @@ import * as inert from 'inert';
 import * as jwt from 'hapi-auth-jwt2';
 import * as jwksRsa from 'jwks-rsa';
 import { AuthenticationClient } from 'auth0';
-import { PlayersManager, PlayersByPosition } from './players-manager';
+import { PlayersManager } from './players-manager';
 import LabelledLogger from './labelled-logger';
 import { User, UserModel } from './models/user';
 import * as _ from 'lodash';
-import { UserTeamsModel, UserTeams } from './models/league';
+import { UserTeamsModel, UserTeams, PlayersByPosition } from './models/league';
+import { UserTeamsManager } from './user-teams-manager';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -40,7 +41,7 @@ export class ApiServer {
         }
     });
 
-    constructor(private playersManager: PlayersManager) {
+    constructor(private playersManager: PlayersManager, private userTeamsManager: UserTeamsManager) {
         this.logger = new LabelledLogger('ApiServer');
 
         this.playersManager.playersByPosition().subscribe(playersByPosition => {
@@ -95,11 +96,9 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
-                const userTeamsDoc = await UserTeamsModel.findOne({ userId: user.id }).exec();
+                const userTeams = await this.userTeamsManager.getTeamsForUser(user.id);
 
-                if (userTeamsDoc) {
-                    const userTeams: UserTeams = userTeamsDoc.toObject();
-
+                if (userTeams) {
                     return userTeams;
                 } else {
                     throw Boom.notFound('teams for user not found');
