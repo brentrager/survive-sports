@@ -1,5 +1,6 @@
 /* tslint:disable:variable-name */
 import * as mongoose from 'mongoose';
+import { User } from './user';
 
 export const POSITIONS = [
     'QB',
@@ -63,6 +64,7 @@ export interface UserTeam {
 
 export interface UserTeams {
     userId: string;
+    user?: User;
     teams: Array<UserTeam>;
 }
 

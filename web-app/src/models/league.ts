@@ -1,3 +1,5 @@
+import { User } from './user';
+
 export const POSITIONS = [
     'QB',
     'RB',
@@ -60,5 +62,6 @@ export interface UserTeam {
 
 export interface UserTeams {
     userId: string;
+    user?: User;
     teams: Array<UserTeam>;
 }

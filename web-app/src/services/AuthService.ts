@@ -2,7 +2,7 @@ import auth0 from 'auth0-js';
 import { BehaviorSubject, noop } from 'rxjs';
 import router from '../router';
 import * as log from 'loglevel';
-import axios, { AxiosAdapter, AxiosRequestConfig, AxiosBasicCredentials } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { User } from '../models/user';
 
 class AuthService {

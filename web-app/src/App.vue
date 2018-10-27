@@ -27,6 +27,10 @@ export default class App extends Vue {}
 <style lang="scss">
 @import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
+button.btn-banner {
+    @include button-variant($banner-text-color, $background-color, $banner-color)
+}
+
 body {
     padding-top: 5rem;
     background-color: $background-color;

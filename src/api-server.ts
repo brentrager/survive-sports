@@ -111,6 +111,20 @@ export class ApiServer {
 
         this.server.route({
             method: 'GET',
+            path: '/api/teams',
+            handler: async (req, h) => {
+                const usersTeams = await this.userTeamsManager.getTeams(true);
+
+                if (usersTeams) {
+                    return usersTeams;
+                } else {
+                    throw Boom.notFound('teams not found');
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
             path: '/api/user',
             handler: async (req, h) => {
                 const creds = (req.auth.credentials as any).payload!;
