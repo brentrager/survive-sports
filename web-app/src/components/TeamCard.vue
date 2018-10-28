@@ -1,6 +1,11 @@
 <template>
     <div class="team-card card mt-4">
-        <h5 class="card-header">{{ header }}</h5>
+        <div class="card-header">
+            <h4 class="d-inline-block align-middle">
+                <img v-if="picture" v-bind:src="picture" class="rounded float-left mr-2" />
+                {{ header }}
+            </h4>
+        </div>
         <div class="card-body" v-if="team">
             <table class="table table-sm">
                 <tbody>
@@ -24,6 +29,14 @@ import { Player } from '../models/league';
 })
 export default class League extends Vue {
     @Prop(String) public header: string | undefined;
+    @Prop(String) public picture: string | undefined;
     @Prop(Array) public team: Array<Player> | undefined;
 }
 </script>
+
+<style lang="scss" scoped>
+img {
+    height: $input-height;
+}
+</style>
+

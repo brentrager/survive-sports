@@ -69,7 +69,11 @@ export interface UserTeams {
 }
 
 export const UserTeamsSchema = new mongoose.Schema({
-    userId: String,
+    userId: {
+        type: String,
+        index: true,
+        unique: true
+    },
     teams: [
         {
             week: Number,

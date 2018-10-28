@@ -21,13 +21,13 @@ class WeekService {
         moment.range(moment('2018-12-04', 'YYYY-MM-DD').tz('America/New_York'), moment('2018-12-11', 'YYYY-MM-DD').tz('America/New_York')),
         moment.range(moment('2018-12-11', 'YYYY-MM-DD').tz('America/New_York'), moment('2018-12-18', 'YYYY-MM-DD').tz('America/New_York')),
         moment.range(moment('2018-12-18', 'YYYY-MM-DD').tz('America/New_York'), moment('2018-12-25', 'YYYY-MM-DD').tz('America/New_York')),
-        moment.range(moment('2018-12-25', 'YYYY-MM-DD').tz('America/New_York'), moment('2018-12-31', 'YYYY-MM-DD').tz('America/New_York')),
+        moment.range(moment('2018-12-25', 'YYYY-MM-DD').tz('America/New_York'), moment('2018-12-31', 'YYYY-MM-DD').tz('America/New_York'))
     ];
 
     /**
      * Returns the current NFL week. The maximum this will return is week 17.
      */
-    public currentWeek() {
+    currentWeek(): number {
         let week = 1;
         for (const weekRange of this.nflWeeks) {
             if (weekRange.contains(moment().tz('America/New_York'))) {
@@ -39,7 +39,19 @@ class WeekService {
         return Math.min(week, this.nflWeeks.length);
     }
 
-    public weeks() {
+    getWeekFromDate(date: Moment.Moment): number {
+        let week = 1;
+        for (const weekRange of this.nflWeeks) {
+            if (weekRange.contains(date)) {
+                return week;
+            }
+            week++;
+        }
+
+        return 0;
+    }
+
+    weeks(): Array<any> {
         return this.nflWeeks.map((x, index) => {
             return { week: index + 1, weekRange: x };
         });

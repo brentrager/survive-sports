@@ -1,7 +1,7 @@
 import LabelledLogger from './labelled-logger';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
 import { Rankings } from './models/league';
 
 const URLS_BY_POSITION: any = {
@@ -38,7 +38,7 @@ export class FantasyPros {
                             name: element.attribs['data-name'],
                             team: element.attribs['data-team'],
                             opp: element.attribs['data-opp'].trim(),
-                            gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').format()
+                            gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').tz('America/New_York').format()
                         };
 
                         curRankings.push(ranking);

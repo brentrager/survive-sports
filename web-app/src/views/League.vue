@@ -8,7 +8,7 @@
         </h2>
         <div class="row">
             <div class="col-sm-12 col-md-6 col-lg-4" v-for="userTeam in currentUsersTeams" :key="userTeam.user">
-                <team-card v-bind:header="userTeam.user" v-bind:team="userTeam.team"></team-card>
+                <team-card v-bind:header="userTeam.user" v-bind:team="userTeam.team" v-bind:picture="userTeam.picture"></team-card>
             </div>
         </div>
     </div>
@@ -24,6 +24,7 @@ import TeamCard from '../components/TeamCard.vue';
 
 interface CurrentUserTeam {
     user: string;
+    picture: string;
     team: Array<Player>;
 }
 
@@ -46,6 +47,7 @@ export default class League extends Vue {
                 if (userTeam.user) {
                     const newCurrentUserTeam: CurrentUserTeam = {
                         user: userTeam.user.name,
+                        picture: userTeam.user.picture as string,
                         team: [],
                     };
 

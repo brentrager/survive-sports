@@ -3,6 +3,9 @@ import LabelledLogger from './labelled-logger';
 import { PlayersManager } from './players-manager';
 import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById } from './models/league';
 import { UserModel, User } from './models/user';
+import weekService from './week-service';
+import * as moment from 'moment-timezone';
+import * as _ from 'lodash';
 
 const logger = new LabelledLogger('UserTeamsManager');
 
@@ -41,6 +44,7 @@ export class UserTeamsManager {
      */
     async getTeams(scrub: boolean): Promise<Array<UserTeams> | undefined> {
         let userTeamsList: Array<UserTeams> | undefined;
+        const currentWeek = weekService.currentWeek();
 
         if (this.playersById) {
             const userTeamsListDoc = await UserTeamsModel.find({}).exec();
@@ -72,7 +76,25 @@ export class UserTeamsManager {
                     }
 
                     for (const userTeam of userTeams.teams) {
-                        userTeam.team = userTeam.team.map(player => (this.playersById as PlayersById)[player.id]);
+                        userTeam.team = userTeam.team.map(player => {
+                            const actualPlayer = _.clone((this.playersById as PlayersById)[player.id]);
+
+                            // If it's for this week and the game is in the past, make the player blank.
+                            if (actualPlayer && actualPlayer.ranking && actualPlayer.position in actualPlayer.ranking) {
+                                const rank = actualPlayer.ranking[actualPlayer.position];
+                                const gameTime = moment(rank.gameTime).tz('America/New_York');
+
+                                if (weekService.getWeekFromDate(gameTime) === userTeam.week
+                                    && gameTime > moment().tz('America/New_York')) {
+                                        actualPlayer.name = '';
+                                        actualPlayer.id = '';
+                                        actualPlayer.team = '';
+                                        actualPlayer.ranking = {};
+                                }
+                            }
+
+                            return actualPlayer;
+                        });
                     }
 
                     return userTeams;

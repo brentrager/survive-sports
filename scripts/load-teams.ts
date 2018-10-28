@@ -129,6 +129,17 @@ function getPlayersByPosition(players: Array<Player>, position: string): Array<P
                     { pos: 'TE', player: 'Ricky Seals-Jones' },
                     { pos: 'K', player: 'Harrison Butker' },
                     { pos: 'DST', player: 'Indianapolis Colts' }
+                ],
+                [
+                    { pos: 'QB', player: 'Aaron Rodgers' },
+                    { pos: 'RB', player: 'Kareem Hunt' },
+                    { pos: 'RB', player: 'Saquon Barkley' },
+                    { pos: 'WR', player: 'Davante Adams' },
+                    { pos: 'WR', player: 'Stefon Diggs' },
+                    { pos: 'WR', player: 'Jarvis Landry' },
+                    { pos: 'TE', player: 'George Kittle' },
+                    { pos: 'K', player: 'Greg Zuerlein' },
+                    { pos: 'DST', player: 'New England Patriots' }
                 ]
             ]
         }
