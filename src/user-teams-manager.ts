@@ -1,11 +1,12 @@
 // tslint:disable:quotemark
 import LabelledLogger from './labelled-logger';
 import { PlayersManager } from './players-manager';
-import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById } from './models/league';
+import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById, Player, UserTeam, POSITIONS } from './models/league';
 import { UserModel, User } from './models/user';
 import weekService from './week-service';
 import * as moment from 'moment-timezone';
 import * as _ from 'lodash';
+import { filter } from 'bluebird';
 
 const logger = new LabelledLogger('UserTeamsManager');
 
@@ -13,10 +14,15 @@ const SCRUBBED = 'SCRUBBED';
 
 export class UserTeamsManager {
     private playersById: PlayersById | undefined;
+    private playersByPosition: PlayersByPosition | undefined;
 
     constructor(private playersManager: PlayersManager) {
         this.playersManager.playersById().subscribe(playersById => {
             this.playersById = playersById;
+        });
+
+        this.playersManager.playersByPosition().subscribe(playersByPosition => {
+            this.playersByPosition = playersByPosition;
         });
     }
 
@@ -38,11 +44,96 @@ export class UserTeamsManager {
         return userTeams;
     }
 
+    async getPlayerIdSetForUser(userId: string, includeCurrentWeek: boolean = false): Promise<Set<string> | undefined> {
+        let playerIdSetForUser: Set<string> | undefined;
+
+        const currentWeek = weekService.currentWeek();
+
+        const userTeams = await this.getTeamsForUser(userId);
+
+        if (userTeams) {
+            playerIdSetForUser = userTeams.teams.reduce((result, userTeam) => {
+                if (includeCurrentWeek || (!includeCurrentWeek && userTeam.week !== currentWeek)) {
+                    for (const teamPlayer of userTeam.team) {
+                        result.add(teamPlayer.id);
+                    }
+                }
+
+                return result;
+            }, new Set());
+        }
+
+        return playerIdSetForUser;
+    }
+
+    isPlayerExpiredInThisWeek(player: Player, week: number): boolean {
+        // If it's for this week and the game is in the past, make the player blank.
+        if (player && player.ranking && player.position in player.ranking) {
+            const rank = player.ranking[player.position];
+            const gameTime = moment(rank.gameTime).tz('America/New_York');
+
+            if (weekService.getWeekFromDate(gameTime) === week
+                && gameTime > moment().tz('America/New_York')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    async getAvailablePlayersForUser(userId: string): Promise<PlayersByPosition | undefined> {
+        let availablePlayersForUser: PlayersByPosition | undefined;
+
+        const playerIdSetForUser = await this.getPlayerIdSetForUser(userId);
+
+        if (playerIdSetForUser && this.playersByPosition) {
+            const players = _.clone(this.playersByPosition);
+            const currentWeek = weekService.currentWeek();
+
+            for (const position of POSITIONS) {
+                players[position] = players[position].filter(player => {
+                    return !this.userTeamsManager.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
+                });
+            }
+
+        }
+
+        return availablePlayersForUser;
+    }
+
+    async setUserTeamForCurrentWeek(userId: string, team: Array<Player>): Promise<UserTeam | undefined> {
+        let userTeamForCurrentWeek: UserTeam | undefined;
+
+        const currentWeek = weekService.currentWeek();
+        const userTeams = await this.getTeamsForUser(userId);
+
+        if (userTeams) {
+            const userTeam = userTeams.teams.find(thisTeam => thisTeam.week === currentWeek);
+
+            if (userTeam) {
+                // First, our existing team may have expired players. Those can't change.
+                const existingTeamRequiredPlayerIdSet = new Set(userTeam.team.filter(player => {
+                    return this.isPlayerExpiredInThisWeek(player, currentWeek);
+                }).map(player => player.id));
+                const newTeamPlayerIdSet = new Set(team.map(player => player.id));
+
+                for (const playerId of existingTeamRequiredPlayerIdSet) {
+                    if (!newTeamPlayerIdSet.has(playerId)) {
+                        throw new Error('a player that cannot be changed was not included');
+                    }
+                }
+            }
+        }
+
+        return userTeamForCurrentWeek;
+    }
+
     /**
      *
      * @param scrub Remove sensitive User information.
+     * @param filterExpiredPlayers Filter out expired players.
      */
-    async getTeams(scrub: boolean): Promise<Array<UserTeams> | undefined> {
+    async getTeams(scrub: boolean, filterExpiredPlayers: boolean): Promise<Array<UserTeams> | undefined> {
         let userTeamsList: Array<UserTeams> | undefined;
         const currentWeek = weekService.currentWeek();
 
@@ -75,26 +166,21 @@ export class UserTeamsManager {
                         userTeams.userId = SCRUBBED;
                     }
 
-                    for (const userTeam of userTeams.teams) {
-                        userTeam.team = userTeam.team.map(player => {
-                            const actualPlayer = _.clone((this.playersById as PlayersById)[player.id]);
+                    if (filterExpiredPlayers) {
+                        for (const userTeam of userTeams.teams) {
+                            userTeam.team = userTeam.team.map(player => {
+                                const actualPlayer = _.clone((this.playersById as PlayersById)[player.id]);
 
-                            // If it's for this week and the game is in the past, make the player blank.
-                            if (actualPlayer && actualPlayer.ranking && actualPlayer.position in actualPlayer.ranking) {
-                                const rank = actualPlayer.ranking[actualPlayer.position];
-                                const gameTime = moment(rank.gameTime).tz('America/New_York');
-
-                                if (weekService.getWeekFromDate(gameTime) === userTeam.week
-                                    && gameTime > moment().tz('America/New_York')) {
-                                        actualPlayer.name = '';
-                                        actualPlayer.id = '';
-                                        actualPlayer.team = '';
-                                        actualPlayer.ranking = {};
+                                if (this.isPlayerExpiredInThisWeek(actualPlayer, userTeam.week)) {
+                                    actualPlayer.name = '';
+                                    actualPlayer.id = '';
+                                    actualPlayer.team = '';
+                                    actualPlayer.ranking = {};
                                 }
-                            }
 
-                            return actualPlayer;
-                        });
+                                return actualPlayer;
+                            });
+                        }
                     }
 
                     return userTeams;

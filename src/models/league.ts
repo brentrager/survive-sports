@@ -1,6 +1,7 @@
-/* tslint:disable:variable-name */
+/* tslint:disable:variable-name max-line-length */
 import * as mongoose from 'mongoose';
 import { User } from './user';
+import * as Joi from 'joi';
 
 export const POSITIONS = [
     'QB',
@@ -88,3 +89,11 @@ export const UserTeamsSchema = new mongoose.Schema({
 });
 
 export const UserTeamsModel = mongoose.model('userTeams', UserTeamsSchema);
+
+const teamComposition = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
+export const TeamPayloadSchema = Joi.array().items(teamComposition.map(pos => {
+    return Joi.object().keys({
+        position: Joi.string().valid(pos),
+        id: Joi.string()
+    }).required();
+})).length(teamComposition.length).required();

@@ -10,8 +10,10 @@ import { PlayersManager } from './players-manager';
 import LabelledLogger from './labelled-logger';
 import { User, UserModel } from './models/user';
 import * as _ from 'lodash';
-import { UserTeamsModel, UserTeams, PlayersByPosition } from './models/league';
+import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSchema } from './models/league';
 import { UserTeamsManager } from './user-teams-manager';
+import weekService from './week-service';
+import * as Joi from 'joi';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -76,9 +78,31 @@ export class ApiServer {
 
         this.server.route({
             method: 'GET',
-            path: '/api/players',
+            path: '/api/user/players',
             handler: async (req, h) => {
-                return this.playersByPosition;
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const playerIdSetForUser = await this.userTeamsManager.getPlayerIdSetForUser(user.id);
+
+                if (playerIdSetForUser) {
+                    const players = _.clone(this.playersByPosition);
+                    const currentWeek = weekService.currentWeek();
+
+                    for (const position of POSITIONS) {
+                        players[position] = players[position].filter(player => {
+                            return !this.userTeamsManager.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
+                        });
+                    }
+
+                    return players;
+                } else {
+                    throw Boom.notFound('teams for user not found');
+                }
             },
             options: {
                 auth: 'jwt'
@@ -110,16 +134,74 @@ export class ApiServer {
         });
 
         this.server.route({
+            method: 'PUT',
+            path: '/api/user/team',
+            handler: async (req, h) => {
+                const week = req.params.week;
+
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const userTeam = await this.userTeamsManager.getTeamsForUser(user.id);
+
+                if (userTeams) {
+                    return userTeams;
+                } else {
+                    throw Boom.notFound('teams for user not found');
+                }
+            },
+            options: {
+                auth: 'jwt',
+                validate: {
+                    payload: TeamPayloadSchema
+                }
+            }
+        });
+
+        this.server.route({
             method: 'GET',
             path: '/api/teams',
             handler: async (req, h) => {
-                const usersTeams = await this.userTeamsManager.getTeams(true);
+                const usersTeams = await this.userTeamsManager.getTeams(true, true);
 
                 if (usersTeams) {
                     return usersTeams;
                 } else {
                     throw Boom.notFound('teams not found');
                 }
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
+            path: '/api/admin/teams',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const roles = new Set(user.roles);
+                if (!roles.has('admin')) {
+                    throw Boom.unauthorized('user is not an admin');
+                }
+
+                const usersTeams = await this.userTeamsManager.getTeams(false, false);
+
+                if (usersTeams) {
+                    return usersTeams;
+                } else {
+                    throw Boom.notFound('teams not found');
+                }
+            },
+            options: {
+                auth: 'jwt'
             }
         });
 
