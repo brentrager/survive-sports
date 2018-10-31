@@ -10,7 +10,7 @@ import { PlayersManager } from './players-manager';
 import LabelledLogger from './labelled-logger';
 import { User, UserModel } from './models/user';
 import * as _ from 'lodash';
-import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSchema } from './models/league';
+import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSchema, Player } from './models/league';
 import { UserTeamsManager } from './user-teams-manager';
 import weekService from './week-service';
 import * as Joi from 'joi';
@@ -146,7 +146,11 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
-                const userTeam = await this.userTeamsManager.getTeamsForUser(user.id);
+                try {
+                    const userTeam = await this.userTeamsManager.setUserTeamForCurrentWeek(user.id, req.payload as Array<Player>);
+                } catch (error) {
+                    this.logger.error(`Error in PUT /api/user/team: ${error}`);
+                }
 
                 if (userTeams) {
                     return userTeams;

@@ -28,6 +28,7 @@ export class UserTeamsManager {
 
     async getTeamsForUser(userId: string): Promise<UserTeams | undefined> {
         let userTeams: UserTeams | undefined;
+        const currentWeek = weekService.currentWeek();
 
         if (this.playersById) {
             const userTeamsDoc = await UserTeamsModel.findOne({ userId }).exec();
@@ -36,7 +37,15 @@ export class UserTeamsManager {
                 userTeams = userTeamsDoc.toObject() as UserTeams;
 
                 for (const userTeam of userTeams.teams) {
-                    userTeam.team = userTeam.team.map(player => (this.playersById as PlayersById)[player.id]);
+                    userTeam.team = userTeam.team.map(player => {
+                        const thisPlayer = _.clone((this.playersById as PlayersById)[player.id]);
+
+                        if (userTeam.week === currentWeek && this.isPlayerExpiredInThisWeek(thisPlayer, currentWeek)) {
+                            thisPlayer.expired = true;
+                        }
+
+                        return thisPlayer;
+                    });
                 }
             }
         }
@@ -87,12 +96,12 @@ export class UserTeamsManager {
         const playerIdSetForUser = await this.getPlayerIdSetForUser(userId);
 
         if (playerIdSetForUser && this.playersByPosition) {
-            const players = _.clone(this.playersByPosition);
+            availablePlayersForUser = _.clone(this.playersByPosition);
             const currentWeek = weekService.currentWeek();
 
             for (const position of POSITIONS) {
-                players[position] = players[position].filter(player => {
-                    return !this.userTeamsManager.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
+                availablePlayersForUser[position] = availablePlayersForUser[position].filter(player => {
+                    return !this.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
                 });
             }
 

@@ -30,6 +30,7 @@ export interface Player {
     name?: string;
     team?: string;
     ranking?: RankingByPosition;
+    expired?: boolean;
 }
 
 export interface Rankings {
