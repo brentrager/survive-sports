@@ -1,7 +1,8 @@
 /* tslint:disable:variable-name max-line-length */
 import * as mongoose from 'mongoose';
-import { User } from './user';
+import { User, UserSchema } from './user';
 import * as Joi from 'joi';
+import { join } from 'path';
 
 export const POSITIONS = [
     'QB',
@@ -20,9 +21,23 @@ export interface Ranking {
     gameTime: string;
 }
 
+export const RankingSchema = Joi.object().keys({
+    ranking: Joi.number().required(),
+    name: Joi.string().required(),
+    team: Joi.string().required(),
+    opp: Joi.string().required(),
+    gameTime: Joi.string().required()
+});
+
 export interface RankingByPosition {
     [position: string]: Ranking;
 }
+
+export const RankingByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, pos) => {
+    res[pos] = RankingSchema;
+
+    return res;
+}, {} as any));
 
 export interface Player {
     id: string;
@@ -32,6 +47,15 @@ export interface Player {
     ranking?: RankingByPosition;
     expired?: boolean;
 }
+
+export const PlayerSchema = Joi.object().keys({
+    id: Joi.string().required(),
+    position: Joi.string().valid(POSITIONS).required(),
+    name: Joi.string().optional(),
+    team: Joi.string().optional(),
+    ranking: RankingByPositionSchema.optional(),
+    expired: Joi.boolean().optional()
+});
 
 export interface Rankings {
     QB: Array<Ranking>;
@@ -59,10 +83,21 @@ export interface PlayersByPosition {
     [position: string]: Array<Player>;
 }
 
+export const PlayersByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, pos) => {
+    res[pos] = Joi.array().items(PlayerSchema);
+
+    return res;
+}, {} as any));
+
 export interface UserTeam {
     week: number;
     team: Array<Player>;
 }
+
+export const UserTeamSchema = Joi.object().keys({
+    week: Joi.number().required(),
+    team: Joi.array().items(PlayerSchema).required()
+});
 
 export interface UserTeams {
     userId: string;
@@ -70,7 +105,13 @@ export interface UserTeams {
     teams: Array<UserTeam>;
 }
 
-export const UserTeamsSchema = new mongoose.Schema({
+export const UserTeamsSchema = Joi.object().keys({
+    userId: Joi.string().required(),
+    user: UserSchema.required(),
+    teams: Joi.array().items(UserTeamSchema).required()
+});
+
+export const UserTeamsMongooseSchema = new mongoose.Schema({
     userId: {
         type: String,
         index: true,
@@ -89,12 +130,8 @@ export const UserTeamsSchema = new mongoose.Schema({
     ]
 });
 
-export const UserTeamsModel = mongoose.model('userTeams', UserTeamsSchema);
+export const UserTeamsModel = mongoose.model('userTeams', UserTeamsMongooseSchema);
 
-const teamComposition = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
-export const TeamPayloadSchema = Joi.array().items(teamComposition.map(pos => {
-    return Joi.object().keys({
-        position: Joi.string().valid(pos),
-        id: Joi.string()
-    }).required();
-})).length(teamComposition.length).required();
+export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
+
+export const TeamPayloadSchema = Joi.array().items(PlayerSchema).length(TEAM_COMPOSITION.length).required();

@@ -1,4 +1,4 @@
-// tslint:disable:quotemark
+// tslint:disable:quotemark variable-name max-line-length
 import * as hapi from 'hapi';
 import * as Boom from 'boom';
 import * as path from 'path';
@@ -8,15 +8,21 @@ import * as jwksRsa from 'jwks-rsa';
 import { AuthenticationClient } from 'auth0';
 import { PlayersManager } from './players-manager';
 import LabelledLogger from './labelled-logger';
-import { User, UserModel } from './models/user';
+import { User, UserModel, UserSchema } from './models/user';
 import * as _ from 'lodash';
-import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSchema, Player } from './models/league';
+import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSchema, Player, PlayersByPositionSchema, UserTeamSchema, UserTeamsSchema, UserTeam } from './models/league';
 import { UserTeamsManager } from './user-teams-manager';
 import weekService from './week-service';
 import * as Joi from 'joi';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
+
+const BoomErrorSchema = Joi.object().keys({
+    statusCode: Joi.number().required(),
+    error: Joi.string().required(),
+    message: Joi.string().optional()
+});
 
 async function validateUser(decoded: any, request: hapi.Request): Promise<any> {
     // This is a simple check that the `sub` claim
@@ -60,6 +66,12 @@ export class ApiServer {
         await this.server.register(jwt);
         await this.server.register(inert);
 
+        this.server.ext('onRequest', (request, h) => {
+            this.logger.info(`Request: ${request.url} - Payload: ${request.payload ? JSON.stringify(request.payload) : 'None'}`);
+
+            return h.continue;
+        });
+
         this.server.auth.strategy('jwt', 'jwt', {
             complete: true,
             key: jwksRsa.hapiJwt2KeyAsync({
@@ -87,25 +99,23 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
-                const playerIdSetForUser = await this.userTeamsManager.getPlayerIdSetForUser(user.id);
+                const availablePlayersForUser = this.userTeamsManager.getAvailablePlayersForUser(user.id);
 
-                if (playerIdSetForUser) {
-                    const players = _.clone(this.playersByPosition);
-                    const currentWeek = weekService.currentWeek();
-
-                    for (const position of POSITIONS) {
-                        players[position] = players[position].filter(player => {
-                            return !this.userTeamsManager.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
-                        });
-                    }
-
-                    return players;
+                if (availablePlayersForUser) {
+                    return availablePlayersForUser;
                 } else {
                     throw Boom.notFound('teams for user not found');
                 }
             },
             options: {
-                auth: 'jwt'
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: PlayersByPositionSchema.required(),
+                        401: BoomErrorSchema,
+                        404: BoomErrorSchema
+                    }
+                }
             }
         });
 
@@ -129,7 +139,14 @@ export class ApiServer {
                 }
             },
             options: {
-                auth: 'jwt'
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: UserTeamsSchema.required(),
+                        401: BoomErrorSchema,
+                        404: BoomErrorSchema
+                    }
+                }
             }
         });
 
@@ -146,22 +163,32 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
+                let userTeam: UserTeam | undefined;
+
                 try {
-                    const userTeam = await this.userTeamsManager.setUserTeamForCurrentWeek(user.id, req.payload as Array<Player>);
+                    userTeam = await this.userTeamsManager.setUserTeamForCurrentWeek(user.id, req.payload as Array<Player>);
                 } catch (error) {
                     this.logger.error(`Error in PUT /api/user/team: ${error}`);
+                    throw Boom.badRequest((error as Error).message);
                 }
 
-                if (userTeams) {
-                    return userTeams;
+                if (userTeam) {
+                    return userTeam;
                 } else {
-                    throw Boom.notFound('teams for user not found');
+                    throw Boom.badRequest('could not set team');
                 }
             },
             options: {
                 auth: 'jwt',
                 validate: {
                     payload: TeamPayloadSchema
+                },
+                response: {
+                    status: {
+                        200: UserTeamSchema.required(),
+                        400: BoomErrorSchema,
+                        401: BoomErrorSchema
+                    }
                 }
             }
         });
@@ -205,7 +232,14 @@ export class ApiServer {
                 }
             },
             options: {
-                auth: 'jwt'
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: UserTeamSchema.required(),
+                        401: BoomErrorSchema,
+                        404: BoomErrorSchema
+                    }
+                }
             }
         });
 
@@ -254,7 +288,13 @@ export class ApiServer {
                 return foundUser;
             },
             options: {
-                auth: 'jwt'
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: UserSchema.required(),
+                        401: BoomErrorSchema
+                    }
+                }
             }
         });
 

@@ -1,7 +1,7 @@
 // tslint:disable:quotemark
 import LabelledLogger from './labelled-logger';
 import { PlayersManager } from './players-manager';
-import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById, Player, UserTeam, POSITIONS } from './models/league';
+import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById, Player, UserTeam, POSITIONS, TEAM_COMPOSITION, RankingByPosition } from './models/league';
 import { UserModel, User } from './models/user';
 import weekService from './week-service';
 import * as moment from 'moment-timezone';
@@ -114,6 +114,28 @@ export class UserTeamsManager {
         let userTeamForCurrentWeek: UserTeam | undefined;
 
         const currentWeek = weekService.currentWeek();
+
+        const playerIdSetForUser = await this.getPlayerIdSetForUser(userId);
+
+        const playerIdSet = new Set();
+        let index = 0;
+        for (const player of team) {
+            if (playerIdSet.has(player.id)) {
+                throw new Error(`duplicate player in this team (${player.id})`);
+            }
+            playerIdSet.add(player.id);
+
+            if (playerIdSetForUser && playerIdSetForUser.has(player.id)) {
+                throw new Error(`duplicate player from past team (${player.id})`);
+            }
+
+            if (player.position !== TEAM_COMPOSITION[index]) {
+                throw new Error('incorrect player order');
+            }
+
+            index++;
+        }
+
         const userTeams = await this.getTeamsForUser(userId);
 
         if (userTeams) {
@@ -128,9 +150,41 @@ export class UserTeamsManager {
 
                 for (const playerId of existingTeamRequiredPlayerIdSet) {
                     if (!newTeamPlayerIdSet.has(playerId)) {
-                        throw new Error('a player that cannot be changed was not included');
+                        throw new Error(`a player that cannot be changed was not included (${playerId})`);
                     }
                 }
+            }
+        }
+
+        if (this.playersById) {
+            userTeamForCurrentWeek = {
+                week: currentWeek,
+                team: []
+            };
+
+            for (const player of team) {
+                if (!(player.id in this.playersById)) {
+                    throw new Error(`unknown player id (${player.id})`);
+                }
+
+                const actualPlayer = this.playersById[player.id];
+
+                if (!(actualPlayer.ranking && player.position in actualPlayer.ranking)) {
+                    throw new Error(`Player ${actualPlayer.name} is not available at ${player.position}`);
+                }
+
+                userTeamForCurrentWeek.team.push(actualPlayer);
+            }
+
+            const userTeamsDoc = await UserTeamsModel.findOne({ userId }).exec();
+            if (userTeamsDoc) {
+                const newUserTeams = userTeamsDoc.toObject() as UserTeams;
+                newUserTeams.teams.push({
+                    week: currentWeek,
+                    team
+                });
+
+                await UserTeamsModel.replaceOne({ userId }, newUserTeams).exec();
             }
         }
 
