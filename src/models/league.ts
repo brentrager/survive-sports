@@ -27,7 +27,7 @@ export const RankingSchema = Joi.object().keys({
     team: Joi.string().required(),
     opp: Joi.string().required(),
     gameTime: Joi.string().required()
-});
+}).unknown();
 
 export interface RankingByPosition {
     [position: string]: Ranking;
@@ -37,7 +37,7 @@ export const RankingByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, 
     res[pos] = RankingSchema;
 
     return res;
-}, {} as any));
+}, {} as any)).unknown();
 
 export interface Player {
     id: string;
@@ -55,7 +55,7 @@ export const PlayerSchema = Joi.object().keys({
     team: Joi.string().optional(),
     ranking: RankingByPositionSchema.optional(),
     expired: Joi.boolean().optional()
-});
+}).unknown();
 
 export interface Rankings {
     QB: Array<Ranking>;
@@ -87,7 +87,7 @@ export const PlayersByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, 
     res[pos] = Joi.array().items(PlayerSchema);
 
     return res;
-}, {} as any));
+}, {} as any)).unknown();
 
 export interface UserTeam {
     week: number;
@@ -97,7 +97,7 @@ export interface UserTeam {
 export const UserTeamSchema = Joi.object().keys({
     week: Joi.number().required(),
     team: Joi.array().items(PlayerSchema).required()
-});
+}).unknown();
 
 export interface UserTeams {
     userId: string;
@@ -107,9 +107,9 @@ export interface UserTeams {
 
 export const UserTeamsSchema = Joi.object().keys({
     userId: Joi.string().required(),
-    user: UserSchema.required(),
+    user: UserSchema.optional(),
     teams: Joi.array().items(UserTeamSchema).required()
-});
+}).unknown();
 
 export const UserTeamsMongooseSchema = new mongoose.Schema({
     userId: {

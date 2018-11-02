@@ -20,7 +20,7 @@ export const UserSchema = Joi.object().keys({
     given_name: Joi.string().optional(),
     family_name: Joi.string().optional(),
     picture: Joi.string().optional()
-});
+}).unknown();
 
 export const UserMongooseSchema = new mongoose.Schema({
     id: {

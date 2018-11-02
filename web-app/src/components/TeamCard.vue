@@ -9,7 +9,7 @@
         <div class="card-body" v-if="team">
             <table class="table table-sm">
                 <tbody>
-                    <tr v-for="player in team" v-if="player" :key="player.id">
+                    <tr v-for="(player, index) of team" v-if="player" v-bind:key="index">
                         <th scope="row">{{ player.position }}</th>
                         <td>{{ player.name }}</td>
                         <td>{{ player.team }}</td>

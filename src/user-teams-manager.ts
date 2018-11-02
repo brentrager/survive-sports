@@ -169,7 +169,7 @@ export class UserTeamsManager {
 
                 const actualPlayer = this.playersById[player.id];
 
-                if (!(actualPlayer.ranking && player.position in actualPlayer.ranking)) {
+                if (!((actualPlayer.ranking && player.position in actualPlayer.ranking) || player.position === actualPlayer.position)) {
                     throw new Error(`Player ${actualPlayer.name} is not available at ${player.position}`);
                 }
 

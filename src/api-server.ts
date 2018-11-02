@@ -67,10 +67,20 @@ export class ApiServer {
         await this.server.register(inert);
 
         this.server.ext('onRequest', (request, h) => {
-            this.logger.info(`Request: ${request.url} - Payload: ${request.payload ? JSON.stringify(request.payload) : 'None'}`);
+            this.logger.info(`Request: ${request.path} - Payload: ${request.payload ? JSON.stringify(request.payload) : 'None'}`);
 
             return h.continue;
         });
+
+        const onPayloadValidationFailure = async (request: hapi.Request, h: hapi.ResponseToolkit, error: Error) => {
+            this.logger.error(`Request payload validation failure for ${request.path}: ${error}`);
+            throw Boom.badRequest('request payload validation failed');
+        };
+
+        const onResponseValidationFailure = async (request: hapi.Request, h: hapi.ResponseToolkit, error: Error) => {
+            this.logger.error(`Response validation failure for ${request.path}: ${error}`);
+            throw Boom.internal('response validation failed');
+        };
 
         this.server.auth.strategy('jwt', 'jwt', {
             complete: true,
@@ -114,7 +124,8 @@ export class ApiServer {
                         200: PlayersByPositionSchema.required(),
                         401: BoomErrorSchema,
                         404: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });
@@ -145,7 +156,8 @@ export class ApiServer {
                         200: UserTeamsSchema.required(),
                         401: BoomErrorSchema,
                         404: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });
@@ -181,14 +193,16 @@ export class ApiServer {
             options: {
                 auth: 'jwt',
                 validate: {
-                    payload: TeamPayloadSchema
+                    payload: TeamPayloadSchema,
+                    failAction: onPayloadValidationFailure
                 },
                 response: {
                     status: {
                         200: UserTeamSchema.required(),
                         400: BoomErrorSchema,
                         401: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });
@@ -203,6 +217,14 @@ export class ApiServer {
                     return usersTeams;
                 } else {
                     throw Boom.notFound('teams not found');
+                }
+            },
+            options: {
+                response: {
+                    status: {
+                        200: Joi.array().items(UserTeamsSchema).required(),
+                        404: BoomErrorSchema
+                    }
                 }
             }
         });
@@ -238,7 +260,8 @@ export class ApiServer {
                         200: UserTeamSchema.required(),
                         401: BoomErrorSchema,
                         404: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });
@@ -293,7 +316,8 @@ export class ApiServer {
                     status: {
                         200: UserSchema.required(),
                         401: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });
@@ -313,8 +337,16 @@ export class ApiServer {
         // return index.html for everything else
         this.server.ext('onPreResponse', (request, h) => {
             const response = request.response as any;
-            if (response && response.isBoom && response.output && response.output.statusCode === 404) {
+            if (!request.path.startsWith('/api/') && response && response.isBoom && response.output && response.output.statusCode === 404) {
                 return h.file('index.html');
+            }
+
+            if (response.isBoom) {
+                const responseBoom: Boom = response;
+                this.logger.info(`Response for ${request.path}: ${responseBoom.output.statusCode} - ${JSON.stringify(responseBoom.output.payload)}`);
+            } else {
+                const responseHapi: hapi.ResponseObject = response;
+                this.logger.info(`Response for ${request.path}: ${responseHapi.statusCode}`);
             }
 
             return h.continue;
