@@ -105,6 +105,10 @@ export class PlayersManager {
 
                 if (playersDocs && playersDocs.length) {
                     const players: Players = playersDocs[0];
+                    for (const player of players.player) {
+                        player.ranking = {};
+                    }
+
                     const rankings: Rankings = this.rankingsSubject.getValue() as Rankings;
 
                     for (const rankingsPosition of POSITIONS) {

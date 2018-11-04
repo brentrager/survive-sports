@@ -82,6 +82,21 @@ export class UserTeamsManager {
             const gameTime = moment(rank.gameTime).tz('America/New_York');
 
             if (weekService.getWeekFromDate(gameTime) === week
+                && gameTime < moment().tz('America/New_York')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    isPlayerYetToPlayInThisWeek(player: Player, week: number): boolean {
+        // If it's for this week and the game is in the past, make the player blank.
+        if (player && player.ranking && player.position in player.ranking) {
+            const rank = player.ranking[player.position];
+            const gameTime = moment(rank.gameTime).tz('America/New_York');
+
+            if (weekService.getWeekFromDate(gameTime) === week
                 && gameTime > moment().tz('America/New_York')) {
                 return true;
             }
@@ -234,11 +249,16 @@ export class UserTeamsManager {
                             userTeam.team = userTeam.team.map(player => {
                                 const actualPlayer = _.clone((this.playersById as PlayersById)[player.id]);
 
-                                if (this.isPlayerExpiredInThisWeek(actualPlayer, userTeam.week)) {
-                                    actualPlayer.name = '';
-                                    actualPlayer.id = '';
-                                    actualPlayer.team = '';
-                                    actualPlayer.ranking = {};
+                                if (this.isPlayerYetToPlayInThisWeek(actualPlayer, userTeam.week)) {
+                                    for (const key in actualPlayer) {
+                                        if ((actualPlayer as any).hasOwnProperty(key)) {
+                                            if (key === 'ranking') {
+                                                (actualPlayer as any)[key] = {};
+                                            } else if (key !== 'position') {
+                                                (actualPlayer as any)[key] = '';
+                                            }
+                                        }
+                                    }
                                 }
 
                                 return actualPlayer;

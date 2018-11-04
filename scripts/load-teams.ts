@@ -140,6 +140,17 @@ function getPlayersByPosition(players: Array<Player>, position: string): Array<P
                     { pos: 'TE', player: 'George Kittle' },
                     { pos: 'K', player: 'Greg Zuerlein' },
                     { pos: 'DST', player: 'New England Patriots' }
+                ],
+                [
+                    { pos: 'QB', player: 'Cam Newton' },
+                    { pos: 'RB', player: 'Ezekiel Elliot' },
+                    { pos: 'RB', player: 'James White' },
+                    { pos: 'WR', player: 'Julian Edelman' },
+                    { pos: 'WR', player: 'Kenny Golladay' },
+                    { pos: 'WR', player: 'Cooper Kupp' },
+                    { pos: 'TE', player: 'O.J.Howard' },
+                    { pos: 'K', player: 'Wil Lutz' },
+                    { pos: 'DST', player: 'Dallas Cowboys' }
                 ]
             ]
         }

@@ -49,12 +49,12 @@ export interface Player {
 }
 
 export const PlayerSchema = Joi.object().keys({
-    id: Joi.string().required(),
+    id: Joi.string().allow('').required(),
     position: Joi.string().valid(POSITIONS).required(),
-    name: Joi.string().optional(),
-    team: Joi.string().optional(),
+    name: Joi.string().allow('').optional(),
+    team: Joi.string().allow('').optional(),
     ranking: RankingByPositionSchema.optional(),
-    expired: Joi.boolean().optional()
+    expired: Joi.boolean().allow('').optional()
 }).unknown();
 
 export interface Rankings {

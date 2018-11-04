@@ -18,6 +18,13 @@
     "array-type": [
       true,
       "generic"
+    ],
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "ignore",
+        "singleline": "ignore"
+      }
     ]
   }
 }

@@ -224,7 +224,8 @@ export class ApiServer {
                     status: {
                         200: Joi.array().items(UserTeamsSchema).required(),
                         404: BoomErrorSchema
-                    }
+                    },
+                    failAction: onResponseValidationFailure
                 }
             }
         });

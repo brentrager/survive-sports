@@ -9,7 +9,7 @@ class AuthService {
     public authenticatedSubject: BehaviorSubject<boolean>;
     public userProfileSubject: BehaviorSubject<User | undefined>;
     private auth0: auth0.WebAuth;
-    private tokenRenewalTimeout: number | undefined;
+    private tokenRenewalTimeout: NodeJS.Timer | undefined;
 
     constructor() {
         this.authenticatedSubject = new BehaviorSubject(false);
@@ -41,9 +41,9 @@ class AuthService {
         this.auth0.parseHash((err, authResult) => {
             if (authResult && authResult.accessToken && authResult.idToken) {
                 this.setSession(authResult);
-                router.replace('league');
+                router.push('/');
             } else if (err) {
-                router.replace('league');
+                router.push('/');
                 log.error(err);
             }
         });
@@ -70,9 +70,11 @@ class AuthService {
         localStorage.removeItem('expires_at');
         this.authenticatedSubject.next(false);
         // navigate to the league route
-        router.replace('league');
+        router.replace('/');
 
-        clearTimeout(this.tokenRenewalTimeout);
+        if (this.tokenRenewalTimeout) {
+            clearTimeout(this.tokenRenewalTimeout);
+        }
     }
 
     public async request(method: string, url: string, data?: any) {
@@ -114,6 +116,7 @@ class AuthService {
         this.auth0.checkSession({},
             (err, result) => {
                 if (err) {
+                    this.authenticatedSubject.next(false);
                     log.error(err);
                 } else {
                     this.setSession(result);
