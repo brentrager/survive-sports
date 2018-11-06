@@ -194,10 +194,17 @@ export class UserTeamsManager {
             const userTeamsDoc = await UserTeamsModel.findOne({ userId }).exec();
             if (userTeamsDoc) {
                 const newUserTeams = userTeamsDoc.toObject() as UserTeams;
-                newUserTeams.teams.push({
-                    week: currentWeek,
-                    team
-                });
+
+                const existingTeam = newUserTeams.teams.find((thisTeam) => thisTeam.week === currentWeek);
+
+                if (existingTeam) {
+                    existingTeam.team = team;
+                } else {
+                    newUserTeams.teams.push({
+                        week: currentWeek,
+                        team
+                    });
+                }
 
                 await UserTeamsModel.replaceOne({ userId }, newUserTeams).exec();
             }

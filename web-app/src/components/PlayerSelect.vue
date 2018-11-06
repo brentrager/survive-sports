@@ -33,47 +33,15 @@ export default class PlayerSelect extends Vue {
     @Prop(Array) public formResults!: Array<string>;
     @Prop(Number) public formResultsIndex!: number;
     private options: Array<Option> = [];
-
-    public mounted() {
-        const vm = this;
-        this.formResults[this.formResultsIndex] = _.clone(this.selected);
-        $(this.$el)
-            // init select2
-            .select2({ data: this.options, theme: 'bootstrap' })
-            .val(this.formResults[this.formResultsIndex])
-            .trigger('change')
-            .on('change', () => {
-                const newVal = $(vm.$el).val() as string;
-                if (newVal !== vm.selected) {
-                    vm.selected = newVal;
-                    vm.formResults[vm.formResultsIndex] = $(vm.$el).val() as string;
-                    vm.$emit('selected');
-                }
-            });
-    }
-
-    @Watch('options')
-    public onOptionshanged(val: Array<Option>, oldVal: Array<Option>) {
-        const vm = this;
-        $(this.$el).empty()
-            .select2({ data: val, theme: 'bootstrap' })
-            .val(this.formResults[this.formResultsIndex])
-            .trigger('change')
-            .on('change', () => {
-                const newVal = $(vm.$el).val() as string;
-                if (newVal !== vm.selected) {
-                    vm.selected = newVal;
-                    vm.formResults[vm.formResultsIndex] = $(vm.$el).val() as string;
-                    vm.$emit('selected');
-                }
-            });
-    }
+    private mySelected!: string;
 
     public destroyed() {
         $(this.$el).off().select2('destroy');
     }
 
     public data() {
+        this.mySelected = this.selected;
+
         if (this.currentlySelectedSubject && this.playersByPositionSubject) {
             combineLatest(this.currentlySelectedSubject, this.playersByPositionSubject).subscribe((value) => {
                 this.computeOptions(value[0], value[1]);
@@ -84,12 +52,31 @@ export default class PlayerSelect extends Vue {
         };
     }
 
+    private buildOptionTemplate(option: any) {
+        const player = (option as any).player as Player;
+        if (!player) {
+            return option.text;
+        }
+        const ranking = player.ranking && this.position in player.ranking && player.ranking[this.position];
+        const rankingNumber = ranking ? ranking.ranking : '';
+        const gameOpp = ranking ? ranking.opp : '';
+        const gametime = ranking ? `${moment(ranking.gameTime).tz('America/New_York').format('ddd h:mm A')}` : '';
+        return $(`
+            <div class="row">
+                <div class="col-sm-1"><strong style="color:rgba(239, 100, 97, 1)">${rankingNumber}</strong></div>
+                <div class="col-sm-4 mr-2">${player.name} <small style="color:rgba(8, 178, 227, 1)">${player.team}</small></div>
+                <div class="col-sm-3 mr-2"><strong style="color:rgba(72, 77, 109, 1)">${gameOpp}</strong></div>
+                <div class="col-sm-3"><small>${gametime}</small></div>
+            </div>
+        `);
+    }
+
     private computeOptions(currentlySelected: Set<string> | undefined,  playersByPosition: PlayersByPosition | undefined) {
         if (this.position && playersByPosition && currentlySelected) {
             const rankings = playersByPosition[this.position];
 
             const availableRankings = rankings.filter((player) => {
-                return player.id === this.selected || !currentlySelected.has(player.id);
+                return player.id === this.mySelected || !currentlySelected.has(player.id);
             });
 
             if (availableRankings) {
@@ -98,18 +85,44 @@ export default class PlayerSelect extends Vue {
                     if (player.ranking && this.position in player.ranking) {
                         const ranking = player.ranking[this.position];
                         displayText = `${ranking.ranking}. ${displayText}`;
-                        displayText += ` ${ranking.opp} on ${moment(ranking.gameTime).tz('America/New_York').format('MM/DD @ hh:mm A')}`
+                        displayText += ` ${ranking.opp} on ${moment(ranking.gameTime).tz('America/New_York').format('MM/DD [at] hh:mm A')}`
                     }
                     return {
                         text: displayText,
-                        id: player.id
+                        id: player.id,
+                        player
                     };
                 });
 
-                this.options.unshift({
-                    text: 'Select',
-                    id: ''
-                });
+                const vm = this;
+                this.formResults[this.formResultsIndex] = this.mySelected;
+                $(this.$el).empty()
+                    .select2({
+                        data: this.options,
+                        theme: 'bootstrap',
+                        placeholder: {
+                            id: '',
+                            text: `Select a ${this.position}`
+                        },
+                        templateResult: (option) => {
+                            return this.buildOptionTemplate(option);
+                        },
+                        templateSelection: (option) => {
+                            return this.buildOptionTemplate(option);
+                        },
+                    })
+                    .val(this.formResults[this.formResultsIndex])
+                    .trigger('change')
+                    .on('change', () => {
+                        setTimeout(function() {
+                            const newVal = $(vm.$el).val() as string;
+                            if (newVal !== vm.selected) {
+                                vm.mySelected = newVal;
+                                vm.formResults[vm.formResultsIndex] = newVal;
+                                vm.$emit('selected');
+                            }
+                        });
+                    });
             }
         }
     }
@@ -119,6 +132,11 @@ export default class PlayerSelect extends Vue {
 <style lang="scss" scoped>
 select {
     width: 100%;
+    min-width: 50%;
+}
+
+.player-team {
+    color: $banner-text-color;
 }
 </style>
 

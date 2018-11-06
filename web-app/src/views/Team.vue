@@ -1,7 +1,7 @@
 <template>
     <div class="team container" v-if="authenticated">
         <div class="row">
-            <div class="col-sm-12 col-md-6 col-lg-6 mx-auto">
+            <div class="team-selection col-sm-12 col-md-6 col-lg-6 mx-auto">
                 <div class="team-card card mt-4">
                     <div class="card-header">
                         <h4 class="d-inline-block align-middle">
@@ -15,7 +15,7 @@
                                     <th scope="row">
                                         {{ player.position }}
                                         </th>
-                                    <td v-if="!player.expired">
+                                    <td v-if="!player.expired" colspan="2">
                                         <player-select
                                             :position="player.position"
                                             :selected="player.id"
@@ -106,7 +106,10 @@ export default class Team extends Vue {
     public newSelection() {
         const formResultsSet = new Set(this.formResults);
         this.isDirty = (!formResultsSet.has('') && this.currentTeam && !_.isEqual(this.formResults, this.currentTeam.team.map((player) => player.id))) as boolean;
-        this.currentlySelectedSubject.next(new Set(this.formResults));
+
+        if (!_.isEqual(formResultsSet, this.currentlySelectedSubject.getValue())) {
+            this.currentlySelectedSubject.next(new Set(this.formResults));
+        }
     }
 
     public async saveTeam() {
@@ -166,3 +169,6 @@ export default class Team extends Vue {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+</style>
