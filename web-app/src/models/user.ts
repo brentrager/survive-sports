@@ -1,5 +1,4 @@
 /* tslint:disable:variable-name */
-import * as mongoose from 'mongoose';
 import * as Joi from 'joi';
 
 export interface User {
@@ -22,26 +21,4 @@ export const UserSchema = Joi.object().keys({
     picture: Joi.string().optional()
 }).unknown();
 
-export const UserMongooseSchema = new mongoose.Schema({
-    id: {
-        type: String,
-        index: true
-    },
-    email: String,
-    name: String,
-    roles: [String],
-    given_name: {
-        type: String,
-        required: false
-    },
-    family_name: {
-        type: String,
-        required: false
-    },
-    picture: {
-        type: String,
-        required: false
-    }
-});
 
-export const UserModel = mongoose.model('user', UserMongooseSchema);

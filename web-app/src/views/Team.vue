@@ -117,7 +117,7 @@ export default class Team extends Vue {
             this.isDirty = false;
 
             await authService.request('PUT', '/api/user/team', TEAM_COMPOSITION.map((position, index) => {
-                return { position: position, id: this.formResults[index] } as Player;
+                return { position, id: this.formResults[index] } as Player;
             }));
 
             await this.start();

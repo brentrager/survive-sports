@@ -9,7 +9,7 @@ class AuthService {
     public authenticatedSubject: BehaviorSubject<boolean>;
     public userProfileSubject: BehaviorSubject<User | undefined>;
     private auth0: auth0.WebAuth;
-    private tokenRenewalTimeout: NodeJS.Timer | undefined;
+    private tokenRenewalTimeout: number | undefined;
 
     constructor() {
         this.authenticatedSubject = new BehaviorSubject(false);

@@ -1,8 +1,6 @@
 /* tslint:disable:variable-name max-line-length */
-import * as mongoose from 'mongoose';
 import { User, UserSchema } from './user';
 import * as Joi from 'joi';
-import { join } from 'path';
 
 export const POSITIONS = [
     'QB',
@@ -110,27 +108,6 @@ export const UserTeamsSchema = Joi.object().keys({
     user: UserSchema.optional(),
     teams: Joi.array().items(UserTeamSchema).required()
 }).unknown();
-
-export const UserTeamsMongooseSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        index: true,
-        unique: true
-    },
-    teams: [
-        {
-            week: Number,
-            team: [
-                {
-                    position: String,
-                    id: String
-                }
-            ]
-        }
-    ]
-});
-
-export const UserTeamsModel = mongoose.model('userTeams', UserTeamsMongooseSchema);
 
 export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
 

@@ -12,7 +12,6 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import $ from 'jquery';
 import 'select2';
 import 'select2/dist/css/select2.css';
-import { constants } from 'http2';
 import * as log from 'loglevel';
 import * as _ from 'lodash';
 import moment from 'moment-timezone';
@@ -85,7 +84,7 @@ export default class PlayerSelect extends Vue {
                     if (player.ranking && this.position in player.ranking) {
                         const ranking = player.ranking[this.position];
                         displayText = `${ranking.ranking}. ${displayText}`;
-                        displayText += ` ${ranking.opp} on ${moment(ranking.gameTime).tz('America/New_York').format('MM/DD [at] hh:mm A')}`
+                        displayText += ` ${ranking.opp} on ${moment(ranking.gameTime).tz('America/New_York').format('MM/DD [at] hh:mm A')}`;
                     }
                     return {
                         text: displayText,
@@ -114,7 +113,7 @@ export default class PlayerSelect extends Vue {
                     .val(this.formResults[this.formResultsIndex])
                     .trigger('change')
                     .on('change', () => {
-                        setTimeout(function() {
+                        setTimeout(() => {
                             const newVal = $(vm.$el).val() as string;
                             if (newVal !== vm.selected) {
                                 vm.mySelected = newVal;
