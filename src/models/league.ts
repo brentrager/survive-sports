@@ -13,6 +13,8 @@ export const POSITIONS = [
     'DST'
 ];
 
+export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
+
 export interface Ranking {
     ranking: number;
     name: string;
@@ -46,6 +48,7 @@ export interface Player {
     team?: string;
     ranking?: RankingByPosition;
     expired?: boolean;
+    byeWeek?: number;
 }
 
 export const PlayerSchema = Joi.object().keys({
@@ -54,7 +57,8 @@ export const PlayerSchema = Joi.object().keys({
     name: Joi.string().allow('').optional(),
     team: Joi.string().allow('').optional(),
     ranking: RankingByPositionSchema.optional(),
-    expired: Joi.boolean().allow('').optional()
+    expired: Joi.boolean().allow('').optional(),
+    byeWeek: Joi.number().integer().max(TEAM_COMPOSITION.length).min(1)
 }).unknown();
 
 export interface Rankings {
@@ -132,6 +136,5 @@ export const UserTeamsMongooseSchema = new mongoose.Schema({
 
 export const UserTeamsModel = mongoose.model('userTeams', UserTeamsMongooseSchema);
 
-export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
 
 export const TeamPayloadSchema = Joi.array().items(PlayerSchema).length(TEAM_COMPOSITION.length).required();

@@ -184,6 +184,18 @@ export class PlayersManager {
         }, 1000 * 60 * 60);
     }
 
+    async updateByeWeeks(players: Players): Promise<void> {
+        const byeWeeksByTeam = await this.mfl.getByeWeeks();
+
+        if (byeWeeksByTeam) {
+            for (const player of players.player) {
+                if (player.team && player.team in byeWeeksByTeam) {
+                    player.byeWeek = byeWeeksByTeam[player.team];
+                }
+            }
+        }
+    }
+
     async update(): Promise<void> {
         try {
             this.logger.info('Updating MFL players in db.');
@@ -226,11 +238,15 @@ export class PlayersManager {
 
                         mongoPlayers.timestamp = mflPlayers.timestamp as number;
 
+                        await this.updateByeWeeks(mongoPlayers);
+
                         this.logger.info(`Updated ${mflPlayers.player.length} players in db since ${since}.`);
                         const result = await this.collectionPlayers.replaceOne({ _id: mongoPlayers._id }, mongoPlayers);
                         this.playersSubject.next(result.ops[0]);
                         forceUpdateRankings = true;
                     } else {
+                        await this.updateByeWeeks(mflPlayers as Players);
+
                         this.logger.info(`Inserted ${mflPlayers.player.length} players in db.`);
                         const result = await this.collectionPlayers.insertOne(mflPlayers);
                         this.playersSubject.next(result.ops[0]);

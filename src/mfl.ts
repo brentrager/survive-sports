@@ -21,6 +21,19 @@ export interface Players {
 
 }
 
+interface ByeWeek {
+    bye_week: number;
+    id: string;
+}
+
+interface ByeWeeks {
+    team: Array<ByeWeek>;
+}
+
+export interface ByeWeeksByTeam {
+    [id: string]: number;
+}
+
 export class MFL {
     private logger: LabelledLogger;
 
@@ -53,6 +66,32 @@ export class MFL {
         }
         catch (error) {
             this.logger.error(`Error getting players: ${error}`);
+            throw error;
+        }
+    }
+
+    async getByeWeeks(): Promise<ByeWeeksByTeam | undefined> {
+        try {
+            const year = moment().format('YYYY');
+            const url = `https://www72.myfantasyleague.com/${year}/export?TYPE=nflByeWeeks&W=&JSON=1`;
+            const response = await axios.get(url);
+            if (!response.data.error) {
+                const data = response.data.nflByeWeeks as ByeWeeks;
+
+                const byeWeeksByTeam: ByeWeeksByTeam = {};
+                for (const byeWeek of data.team) {
+                    byeWeeksByTeam[byeWeek.id] = byeWeek.bye_week;
+                }
+
+                return byeWeeksByTeam;
+            } else {
+                this.logger.error(`Error getting bye weeks: ${response.data.error}`);
+
+                return undefined;
+            }
+        }
+        catch (error) {
+            this.logger.error(`Error getting bye weeks: ${error}`);
             throw error;
         }
     }
