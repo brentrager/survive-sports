@@ -2,7 +2,7 @@
 import * as mongoose from 'mongoose';
 import { User, UserSchema } from './user';
 import * as Joi from 'joi';
-import { join } from 'path';
+import weekService from '../week-service';
 
 export const POSITIONS = [
     'QB',
@@ -58,7 +58,7 @@ export const PlayerSchema = Joi.object().keys({
     team: Joi.string().allow('').optional(),
     ranking: RankingByPositionSchema.optional(),
     expired: Joi.boolean().allow('').optional(),
-    byeWeek: Joi.number().integer().max(TEAM_COMPOSITION.length).min(1)
+    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1)
 }).unknown();
 
 export interface Rankings {
@@ -135,6 +135,5 @@ export const UserTeamsMongooseSchema = new mongoose.Schema({
 });
 
 export const UserTeamsModel = mongoose.model('userTeams', UserTeamsMongooseSchema);
-
 
 export const TeamPayloadSchema = Joi.array().items(PlayerSchema).length(TEAM_COMPOSITION.length).required();
