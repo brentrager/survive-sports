@@ -23,7 +23,7 @@ const logger = new LabelledLogger('EraseMongo');
 
     await db.collection('players').deleteMany({});
     await db.collection('rankings').deleteMany({});
-    await UserModel.deleteMany({}).exec();
+    // await UserModel.deleteMany({}).exec();
     await UserTeamsModel.deleteMany({}).exec();
 
     logger.info('Mongo erased.');

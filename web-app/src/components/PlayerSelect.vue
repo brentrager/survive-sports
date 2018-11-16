@@ -3,7 +3,8 @@
 </template>
 
 <script lang="ts">
-// tslint:disable:max-line-length
+// tslint:disable:max-line-length no-reference
+/// <reference path="../select2.d.ts" />
 
 import { Component, Vue, Prop, Watch} from 'vue-property-decorator';
 import { Player, PlayersByPosition } from '../models/league';
