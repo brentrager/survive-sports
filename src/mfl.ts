@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as moment from 'moment';
 import LabelledLogger from './labelled-logger';
 import * as Joi from 'joi';
+import { TeamWeek, TeamMatchup } from './models/league';
 
 const MAP_MFL_POSITIONS_TO_STANDARD: any = {
     QB: 'QB',
@@ -47,6 +48,10 @@ const ByeWeeksSchema = Joi.object().keys({
     }))
 }).unknown();
 
+export interface ByeWeeksByTeam {
+    [id: string]: number;
+}
+
 interface Schedule {
     matchup: Array<
         {
@@ -76,33 +81,35 @@ const ScheduleSchema = Joi.object().keys({
             passDefenseRank: Joi.string().regex(/^\d+$/),
             rushDefenseRank: Joi.string().regex(/^\d+$/),
             isHome: Joi.string().regex(/^1|0$/),
-            spread: Joi.string().regex(/^[\d\.\-]+$/),
+            spread: Joi.string().regex(/^[\d\.\-]+$/)
         }).unknown())
     }).unknown())
 }).unknown();
 
-export interface ByeWeeksByTeam {
-    [id: string]: number;
-}
-
-interface TeamWeek {
-    id: string;
-    passOffenseRank: string;
-    rushOffenseRank: string;
-    passDefenseRank: string;
-    rushDefenseRank: string;
-    isHome: string;
-    spread: string;
-    kickoff: string;
-}
-
-interface TeamMatchup {
-    team: TeamWeek;
-    opponent: TeamWeek;
-}
-
 export interface TeamSchedulesByTeam {
     [id: string]: TeamMatchup;
+}
+
+interface Injury {
+    id: string;
+    status: string;
+    details: string;
+}
+
+interface Injuries {
+    injury: Array<Injury>;
+}
+
+const InjuriesSchema = Joi.object().keys({
+    injury: Joi.array().items(Joi.object().keys({
+        id: Joi.string(),
+        status: Joi.string(),
+        details: Joi.string()
+    }))
+}).unknown();
+
+export interface InjuriesByPlayer {
+    [id: string]: Injury;
 }
 
 export class MFL {
@@ -121,7 +128,7 @@ export class MFL {
             if (!response.data.error) {
                 const data = await PlayersSchema.validate(response.data.players) as Players;
                 const timestamp = moment(data.timestamp as number * 1000).tz('America/New_York');
-                data.timestamp = timestamp.format();
+                data.timestamp = timestamp.toISOString();
 
                 for (const player of data.player) {
                     player.position = player.position in MAP_MFL_POSITIONS_TO_STANDARD ? MAP_MFL_POSITIONS_TO_STANDARD[player.position] : player.position;
@@ -177,21 +184,76 @@ export class MFL {
 
                 const teamSchedulesByTeam: TeamSchedulesByTeam = {};
                 for (const matchup of data.matchup) {
-                    const kickoff = moment(parseInt(matchup.kickoff, 10) * 1000).tz('America/New_York');
+                    const kickoff = moment(parseInt(matchup.kickoff, 10) * 1000).tz('America/New_York').toISOString();
                     const team1 = matchup.team[0];
                     const team2 = matchup.team[1];
+                    const teams = [team1, team2];
 
+                    const teamWeeks: Array<TeamWeek> = [];
+                    for (let index = 0; index < 2; index++) {
+                        const teamMatchup = teams[index];
+                        const teamWeek: TeamWeek = {
+                            id: teamMatchup.id,
+                            isHome: teamMatchup.isHome === '1',
+                            kickoff,
+                            passDefenseRank: parseInt(teamMatchup.passDefenseRank, 10),
+                            passOffenseRank: parseInt(teamMatchup.passOffenseRank, 10),
+                            rushDefenseRank: parseInt(teamMatchup.rushDefenseRank, 10),
+                            rushOffenseRank: parseInt(teamMatchup.rushOffenseRank, 10),
+                            spread: parseFloat(teamMatchup.spread)
+                        };
+                        teamWeeks.push(teamWeek);
+                    }
+
+                    const teamMatchup1: TeamMatchup = {
+                        team: teamWeeks[0],
+                        opponent: teamWeeks[1]
+                    };
+
+                    const teamMatchup2: TeamMatchup = {
+                        team: teamWeeks[1],
+                        opponent: teamWeeks[0]
+                    };
+
+                    teamSchedulesByTeam[teamMatchup1.team.id] = teamMatchup1;
+                    teamSchedulesByTeam[teamMatchup2.team.id] = teamMatchup2;
                 }
 
-                return byeWeeksByTeam;
+                return teamSchedulesByTeam;
             } else {
-                this.logger.error(`Error getting bye weeks: ${response.data.error}`);
+                this.logger.error(`Error getting team schedules: ${response.data.error}`);
 
                 return undefined;
             }
         }
         catch (error) {
-            this.logger.error(`Error getting bye weeks: ${error}`);
+            this.logger.error(`Error getting team schedules: ${error}`);
+            throw error;
+        }
+    }
+
+    async getInjuries(): Promise<InjuriesByPlayer | undefined> {
+        try {
+            const year = moment().format('YYYY');
+            const url = `https://www70.myfantasyleague.com/${year}/export?TYPE=injuries&W=&JSON=1`;
+            const response = await axios.get(url);
+            if (!response.data.error) {
+                const data = await InjuriesSchema.validate(response.data.injuries) as Injuries;
+
+                const injuriesByPlayer: InjuriesByPlayer = {};
+                for (const injury of data.injury) {
+                    injuriesByPlayer[injury.id] = injury;
+                }
+
+                return injuriesByPlayer;
+            } else {
+                this.logger.error(`Error getting injuries: ${response.data.error}`);
+
+                return undefined;
+            }
+        }
+        catch (error) {
+            this.logger.error(`Error getting injuries: ${error}`);
             throw error;
         }
     }

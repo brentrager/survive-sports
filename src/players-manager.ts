@@ -72,10 +72,10 @@ export class PlayersManager {
         try {
             this.logger.info('Updating Fantasy Pros rankings in db.');
 
-            const docs = await this.collectionRankings.find({}).toArray();
+            const docs = await this.collectionRankings.findOne({});
             let mongoRankings: Rankings | undefined;
-            if (docs.length) {
-                mongoRankings = docs[0];
+            if (docs) {
+                mongoRankings = docs;
             }
 
             let getNewPlayers = true;
@@ -101,10 +101,13 @@ export class PlayersManager {
 
                 this.logger.info('Updating MFL players with rankings in db.');
 
-                const playersDocs = await this.collectionPlayers.find({}).toArray();
+                const playersDocs = await this.collectionPlayers.findOne({});
 
-                if (playersDocs && playersDocs.length) {
-                    const players: Players = playersDocs[0];
+                if (playersDocs) {
+                    const players: Players = playersDocs;
+
+                    await this.updateTeamSchedules(players);
+
                     for (const player of players.player) {
                         player.ranking = {};
                     }
@@ -189,10 +192,56 @@ export class PlayersManager {
 
         if (byeWeeksByTeam) {
             for (const player of players.player) {
+                if (player.byeWeek) {
+                    delete player.byeWeek;
+                }
+
                 if (player.team && player.team in byeWeeksByTeam) {
                     player.byeWeek = byeWeeksByTeam[player.team];
                 }
             }
+
+            this.logger.info('Updated player bye weeks.');
+        }
+    }
+
+    async updateTeamSchedules(players: Players): Promise<void> {
+        const teamSchedulesByTeam = await this.mfl.getTeamSchedules();
+
+        if (teamSchedulesByTeam) {
+            for (const player of players.player) {
+                if (player.matchup) {
+                    delete player.matchup;
+                }
+
+                if (player.team) {
+                    player.matchup = teamSchedulesByTeam[player.team];
+                }
+            }
+
+            this.logger.info('Updated player schedules.');
+        }
+    }
+
+    async updateInjuries(players: Players): Promise<void> {
+        const injuriesByPlayer = await this.mfl.getInjuries();
+
+        if (injuriesByPlayer) {
+            for (const player of players.player) {
+                if (player.injury) {
+                    delete player.injury;
+                }
+
+                if (player.id in injuriesByPlayer) {
+                    const playerInjury = injuriesByPlayer[player.id];
+                    player.injury = {
+                        status: playerInjury.status,
+                        details: playerInjury.details
+                    };
+                }
+            }
+
+            this.logger.info('Updated player injuries.');
         }
     }
 
@@ -239,6 +288,7 @@ export class PlayersManager {
                         mongoPlayers.timestamp = mflPlayers.timestamp as number;
 
                         await this.updateByeWeeks(mongoPlayers);
+                        await this.updateInjuries(mongoPlayers);
 
                         this.logger.info(`Updated ${mflPlayers.player.length} players in db since ${since}.`);
                         const result = await this.collectionPlayers.replaceOne({ _id: mongoPlayers._id }, mongoPlayers);
@@ -246,6 +296,7 @@ export class PlayersManager {
                         forceUpdateRankings = true;
                     } else {
                         await this.updateByeWeeks(mflPlayers as Players);
+                        await this.updateInjuries(mflPlayers as Players);
 
                         this.logger.info(`Inserted ${mflPlayers.player.length} players in db.`);
                         const result = await this.collectionPlayers.insertOne(mflPlayers);

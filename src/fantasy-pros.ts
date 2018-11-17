@@ -38,7 +38,7 @@ export class FantasyPros {
                             name: element.attribs['data-name'],
                             team: element.attribs['data-team'],
                             opp: element.attribs['data-opp'].trim(),
-                            gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').tz('America/New_York').format()
+                            gameTime: moment(element.attribs['data-kickoff'], 'MM/DD hh:mm a').tz('America/New_York').toISOString()
                         };
 
                         curRankings.push(ranking);
@@ -46,7 +46,7 @@ export class FantasyPros {
                 }
             }
 
-            rankings.timestamp = moment().format();
+            rankings.timestamp = moment().tz('America/New_York').toISOString();
 
             return rankings;
         } catch (error) {

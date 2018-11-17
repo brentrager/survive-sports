@@ -28,7 +28,7 @@ export const RankingSchema = Joi.object().keys({
     name: Joi.string().required(),
     team: Joi.string().required(),
     opp: Joi.string().required(),
-    gameTime: Joi.string().required()
+    gameTime: Joi.string().isoDate().required()
 }).unknown();
 
 export interface RankingByPosition {
@@ -41,6 +41,47 @@ export const RankingByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, 
     return res;
 }, {} as any)).unknown();
 
+export interface TeamWeek {
+    id: string;
+    passOffenseRank: number;
+    rushOffenseRank: number;
+    passDefenseRank: number;
+    rushDefenseRank: number;
+    isHome: boolean;
+    spread: number;
+    kickoff: string;
+}
+
+export const TeamWeekSchema = Joi.object().keys({
+    id: Joi.string().required(),
+    passOffenseRank: Joi.number().integer().positive().required(),
+    rushOffenseRank: Joi.number().integer().positive().required(),
+    passDefenseRank: Joi.number().integer().positive().required(),
+    rushDefenseRank: Joi.number().integer().positive().required(),
+    isHome: Joi.boolean().required(),
+    kickoff: Joi.string().isoDate().required()
+});
+
+export interface TeamMatchup {
+    team: TeamWeek;
+    opponent: TeamWeek;
+}
+
+export const TeamMatchupSchema = Joi.object().keys({
+    team: TeamWeekSchema,
+    opponent: TeamWeekSchema
+});
+
+export interface Injury {
+    status: string;
+    details: string;
+}
+
+export const InjurySchema = Joi.object().keys({
+    status: Joi.string().required(),
+    details: Joi.string().required()
+});
+
 export interface Player {
     id: string;
     position: string;
@@ -49,6 +90,8 @@ export interface Player {
     ranking?: RankingByPosition;
     expired?: boolean;
     byeWeek?: number;
+    matchup?: TeamMatchup;
+    injury?: Injury;
 }
 
 export const PlayerSchema = Joi.object().keys({
@@ -57,8 +100,10 @@ export const PlayerSchema = Joi.object().keys({
     name: Joi.string().allow('').optional(),
     team: Joi.string().allow('').optional(),
     ranking: RankingByPositionSchema.optional(),
-    expired: Joi.boolean().allow('').optional(),
-    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1)
+    expired: Joi.boolean().optional(),
+    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1),
+    matchup: TeamMatchupSchema.optional(),
+    injury: InjurySchema.optional()
 }).unknown();
 
 export interface Rankings {
