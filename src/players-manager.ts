@@ -68,6 +68,15 @@ export class PlayersManager {
         });
     }
 
+    nameException(name: string): string {
+        const exceptions: any = {
+            'mike badgley': 'michael badgley',
+            'michael badgley': 'michael badgley'
+        };
+
+        return name in exceptions ? exceptions[name] : name;
+    }
+
     async updateRankings(force: boolean = false): Promise<void> {
         try {
             this.logger.info('Updating Fantasy Pros rankings in db.');
@@ -133,8 +142,8 @@ export class PlayersManager {
                                 }
 
                                 let nameMatch1 = true;
-                                const playerName = thisPlayer.name.toLocaleLowerCase().replace('.', '');
-                                const rankingName = ranking.name.toLocaleLowerCase().replace('.', '');
+                                const playerName = this.nameException(thisPlayer.name.toLocaleLowerCase().replace('.', ''));
+                                const rankingName = this.nameException(ranking.name.toLocaleLowerCase().replace('.', ''));
                                 const playerNameArray = playerName.split(' ');
                                 const rankingNameArray = rankingName.split(' ');
                                 for (let i = 0; i < Math.min(playerNameArray.length, rankingNameArray.length); i++) {

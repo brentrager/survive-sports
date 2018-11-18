@@ -1,4 +1,4 @@
-/* tslint:disable:variable-name max-line-length */
+/* tslint:disable:variable-name max-line-length object-literal-key-quotes */
 import axios from 'axios';
 import * as moment from 'moment';
 import LabelledLogger from './labelled-logger';
@@ -12,6 +12,17 @@ const MAP_MFL_POSITIONS_TO_STANDARD: any = {
     TE: 'TE',
     Def: 'DST',
     PK: 'K'
+};
+
+const INJURIES_MAP: any = {
+    'Questionable': 'Q',
+    'IR': 'IR',
+    'Out': 'O',
+    'Suspended': 'S',
+    'Ir-nfi': 'IR',
+    'Ir-r': 'IR',
+    'Ir-pup': 'IR',
+    'Doubtful': 'D'
 };
 
 export interface Players {
@@ -33,7 +44,7 @@ const PlayersSchema = Joi.object().keys({
 }).unknown();
 
 interface ByeWeek {
-    bye_week: number;
+    bye_week: string;
     id: string;
 }
 
@@ -158,7 +169,7 @@ export class MFL {
 
                 const byeWeeksByTeam: ByeWeeksByTeam = {};
                 for (const byeWeek of data.team) {
-                    byeWeeksByTeam[byeWeek.id] = byeWeek.bye_week;
+                    byeWeeksByTeam[byeWeek.id] = parseInt(byeWeek.bye_week, 10);
                 }
 
                 return byeWeeksByTeam;
@@ -239,6 +250,9 @@ export class MFL {
             const response = await axios.get(url);
             if (!response.data.error) {
                 const data = await InjuriesSchema.validate(response.data.injuries) as Injuries;
+                for (const injury of data.injury) {
+                    injury.status = injury.status in INJURIES_MAP ? INJURIES_MAP[injury.status] : injury.status;
+                }
 
                 const injuriesByPlayer: InjuriesByPlayer = {};
                 for (const injury of data.injury) {

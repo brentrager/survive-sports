@@ -153,6 +153,17 @@ function getPlayersByPosition(players: Array<Player>, position: string): Array<P
                     { pos: 'DST', player: 'Dallas Cowboys' }
                 ],
                 [
+                    { pos: 'QB', player: 'Jared Goff' },
+                    { pos: 'RB', player: 'Duke Johnson' },
+                    { pos: 'RB', player: 'Dion Lewis' },
+                    { pos: 'WR', player: 'Tyler Boyd' },
+                    { pos: 'WR', player: 'Marvin Jones' },
+                    { pos: 'WR', player: 'TY Hilton' },
+                    { pos: 'TE', player: 'Zach Ertz' },
+                    { pos: 'K', player: 'Mason Crosby' },
+                    { pos: 'DST', player: 'New York Jets' }
+                ],
+                [
                     { pos: 'QB', player: 'Drew Brees' },
                     { pos: 'RB', player: 'Leonard Fournette' },
                     { pos: 'RB', player: 'Aaron Jones' },

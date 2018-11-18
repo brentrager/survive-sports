@@ -59,14 +59,39 @@ export default class PlayerSelect extends Vue {
         }
         const ranking = player.ranking && this.position in player.ranking && player.ranking[this.position];
         const rankingNumber = ranking ? ranking.ranking : '';
-        const gameOpp = ranking ? ranking.opp : '';
-        const gametime = ranking ? `${moment(ranking.gameTime).tz('America/New_York').format('ddd h:mm A')}` : '';
+        let gameOpp = '';
+        let gameTime = '';
+        let injuryStatus = '';
+        if (player.matchup) {
+            gameOpp = `${player.matchup.opponent.isHome ? '@' : ''}${player.matchup.opponent.id}`;
+            let gameOppColor = 'rgba(72, 77, 109, 1)';
+
+            if (this.position === 'QB' || this.position === 'TE' || this.position === 'WR' || this.position === 'DST') {
+                if (player.matchup.opponent.passDefenseRank <= 10) {
+                    gameOppColor = '#dc3545';
+                } else if (player.matchup.opponent.passDefenseRank > 20) {
+                    gameOppColor = '#28a745';
+                }
+            } else if (this.position === 'RB') {
+                if (player.matchup.opponent.rushDefenseRank <= 10) {
+                    gameOppColor = '#dc3545';
+                } else if (player.matchup.opponent.rushDefenseRank > 20) {
+                    gameOppColor = '#28a745';
+                }
+            }
+
+            gameOpp = `<strong style="color:${gameOppColor}">${gameOpp}</strong>`;
+            gameTime = `${moment(player.matchup.team.kickoff).tz('America/New_York').format('ddd h:mm A')}`;
+        }
+        if (player.injury) {
+            injuryStatus = ` <small style="color:rgba(255, 0, 0, 1)">${player.injury.status}</small>`;
+        }
         return $(`
             <div class="row">
                 <div class="col-sm-1"><strong style="color:rgba(239, 100, 97, 1)">${rankingNumber}</strong></div>
-                <div class="col-sm-4 mr-2">${player.name} <small style="color:rgba(8, 178, 227, 1)">${player.team}</small></div>
-                <div class="col-sm-3 mr-2"><strong style="color:rgba(72, 77, 109, 1)">${gameOpp}</strong></div>
-                <div class="col-sm-3"><small>${gametime}</small></div>
+                <div class="col-sm-5 mr-2">${player.name} <small style="color:rgba(8, 178, 227, 1)">${player.team}</small>${injuryStatus}</div>
+                <div class="col-sm-2 mr-2">${gameOpp}</div>
+                <div class="col-sm-3"><small>${gameTime}</small></div>
             </div>
         `);
     }
@@ -85,7 +110,7 @@ export default class PlayerSelect extends Vue {
                     if (player.ranking && this.position in player.ranking) {
                         const ranking = player.ranking[this.position];
                         displayText = `${ranking.ranking}. ${displayText}`;
-                        displayText += ` ${ranking.opp} on ${moment(ranking.gameTime).tz('America/New_York').format('MM/DD [at] hh:mm A')}`;
+                        displayText += ` ${player.matchup && player.matchup.opponent.id} on ${player.matchup && moment(player.matchup.team.kickoff).tz('America/New_York').format('MM/DD [at] hh:mm A')}`;
                     }
                     return {
                         text: displayText,

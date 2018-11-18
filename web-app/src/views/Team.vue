@@ -26,8 +26,7 @@
                                             v-on:selected="newSelection()"></player-select>
                                     </td>
                                     <template v-if="player.expired">
-                                        <td>{{ player.name }}</td>
-                                        <td>{{ player.team }}</td>
+                                        <td collspan="2" v-html="displayPlayer(player)"></td>
                                     </template>
                                 </tr>
                             </tbody>
@@ -58,6 +57,7 @@ import TeamCard from '../components/TeamCard.vue';
 import weekService from '../services/WeekService';
 import PlayerSelect from '../components/PlayerSelect.vue';
 import { BehaviorSubject } from 'rxjs';
+import moment from 'moment-timezone';
 import * as _ from 'lodash';
 
 export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
@@ -100,7 +100,48 @@ export default class Team extends Vue {
             currentlySelectedSubject: this.currentlySelectedSubject,
             formResults: this.formResults,
             isDirty: this.isDirty,
+            displayPlayer: this.displayPlayer
         };
+    }
+
+    public displayPlayer(player: Player) {
+        const ranking = player.ranking && player.position in player.ranking && player.ranking[player.position];
+        const rankingNumber = ranking ? ranking.ranking : '';
+        let gameOpp = '';
+        let gameTime = '';
+        let injuryStatus = '';
+        if (player.matchup) {
+            gameOpp = `${player.matchup.opponent.isHome ? '@' : ''}${player.matchup.opponent.id}`;
+            let gameOppColor = 'rgba(72, 77, 109, 1)';
+
+            if (player.position === 'QB' || player.position === 'TE' || player.position === 'WR' || player.position === 'DST') {
+                if (player.matchup.opponent.passDefenseRank <= 10) {
+                    gameOppColor = '#dc3545';
+                } else if (player.matchup.opponent.passDefenseRank > 20) {
+                    gameOppColor = '#28a745';
+                }
+            } else if (player.position === 'RB') {
+                if (player.matchup.opponent.rushDefenseRank <= 10) {
+                    gameOppColor = '#dc3545';
+                } else if (player.matchup.opponent.rushDefenseRank > 20) {
+                    gameOppColor = '#28a745';
+                }
+            }
+
+            gameOpp = `<strong style="color:${gameOppColor}">${gameOpp}</strong>`;
+            gameTime = `${moment(player.matchup.team.kickoff).tz('America/New_York').format('ddd h:mm A')}`;
+        }
+        if (player.injury) {
+            injuryStatus = ` <small style="color:rgba(255, 0, 0, 1)">${player.injury.status}</small>`;
+        }
+        return `
+            <div class="row" style="width:100%;font-size: 90%">
+                <div class="col-sm-2"><strong style="color:rgba(239, 100, 97, 1)">${rankingNumber}</strong></div>
+                <div class="col-sm-5">${player.name} <small style="color:rgba(8, 178, 227, 1)">${player.team}</small>${injuryStatus}</div>
+                <div class="col-sm-2">${gameOpp}</div>
+                <div class="col-sm-3"><small>${gameTime}</small></div>
+            </div>
+        `;
     }
 
     public newSelection() {

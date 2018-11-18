@@ -1,6 +1,7 @@
 /* tslint:disable:variable-name max-line-length */
 import { User, UserSchema } from './user';
 import * as Joi from 'joi';
+import weekService from '../services/WeekService';
 
 export const POSITIONS = [
     'QB',
@@ -10,6 +11,8 @@ export const POSITIONS = [
     'K',
     'DST'
 ];
+
+export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
 
 export interface Ranking {
     ranking: number;
@@ -24,7 +27,7 @@ export const RankingSchema = Joi.object().keys({
     name: Joi.string().required(),
     team: Joi.string().required(),
     opp: Joi.string().required(),
-    gameTime: Joi.string().required()
+    gameTime: Joi.string().isoDate().allow(null).required()
 }).unknown();
 
 export interface RankingByPosition {
@@ -37,6 +40,48 @@ export const RankingByPositionSchema = Joi.object().keys(POSITIONS.reduce((res, 
     return res;
 }, {} as any)).unknown();
 
+export interface TeamWeek {
+    id: string;
+    passOffenseRank: number;
+    rushOffenseRank: number;
+    passDefenseRank: number;
+    rushDefenseRank: number;
+    isHome: boolean;
+    spread: number;
+    kickoff: string;
+}
+
+export const TeamWeekSchema = Joi.object().keys({
+    id: Joi.string().required(),
+    passOffenseRank: Joi.number().integer().positive().required(),
+    rushOffenseRank: Joi.number().integer().positive().required(),
+    passDefenseRank: Joi.number().integer().positive().required(),
+    rushDefenseRank: Joi.number().integer().positive().required(),
+    isHome: Joi.boolean().required(),
+    spread: Joi.number().required(),
+    kickoff: Joi.string().isoDate().required()
+});
+
+export interface TeamMatchup {
+    team: TeamWeek;
+    opponent: TeamWeek;
+}
+
+export const TeamMatchupSchema = Joi.object().keys({
+    team: TeamWeekSchema,
+    opponent: TeamWeekSchema
+});
+
+export interface Injury {
+    status: string;
+    details: string;
+}
+
+export const InjurySchema = Joi.object().keys({
+    status: Joi.string().required(),
+    details: Joi.string().required()
+});
+
 export interface Player {
     id: string;
     position: string;
@@ -44,15 +89,21 @@ export interface Player {
     team?: string;
     ranking?: RankingByPosition;
     expired?: boolean;
+    byeWeek?: number;
+    matchup?: TeamMatchup;
+    injury?: Injury;
 }
 
 export const PlayerSchema = Joi.object().keys({
-    id: Joi.string().required(),
+    id: Joi.string().allow('').allow(null).required(),
     position: Joi.string().valid(POSITIONS).required(),
-    name: Joi.string().optional(),
-    team: Joi.string().optional(),
-    ranking: RankingByPositionSchema.optional(),
-    expired: Joi.boolean().optional()
+    name: Joi.string().allow('').allow(null).optional(),
+    team: Joi.string().allow('').allow(null).optional(),
+    ranking: RankingByPositionSchema.allow(null).optional(),
+    expired: Joi.boolean().allow(null).optional(),
+    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1).allow(null),
+    matchup: TeamMatchupSchema.optional().allow(null),
+    injury: InjurySchema.optional().allow(null)
 }).unknown();
 
 export interface Rankings {
@@ -108,7 +159,5 @@ export const UserTeamsSchema = Joi.object().keys({
     user: UserSchema.optional(),
     teams: Joi.array().items(UserTeamSchema).required()
 }).unknown();
-
-export const TEAM_COMPOSITION = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DST'];
 
 export const TeamPayloadSchema = Joi.array().items(PlayerSchema).length(TEAM_COMPOSITION.length).required();

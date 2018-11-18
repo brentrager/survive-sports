@@ -28,7 +28,7 @@ export const RankingSchema = Joi.object().keys({
     name: Joi.string().required(),
     team: Joi.string().required(),
     opp: Joi.string().required(),
-    gameTime: Joi.string().isoDate().required()
+    gameTime: Joi.string().isoDate().allow(null).required()
 }).unknown();
 
 export interface RankingByPosition {
@@ -59,6 +59,7 @@ export const TeamWeekSchema = Joi.object().keys({
     passDefenseRank: Joi.number().integer().positive().required(),
     rushDefenseRank: Joi.number().integer().positive().required(),
     isHome: Joi.boolean().required(),
+    spread: Joi.number().required(),
     kickoff: Joi.string().isoDate().required()
 });
 
@@ -95,15 +96,15 @@ export interface Player {
 }
 
 export const PlayerSchema = Joi.object().keys({
-    id: Joi.string().allow('').required(),
+    id: Joi.string().allow('').allow(null).required(),
     position: Joi.string().valid(POSITIONS).required(),
-    name: Joi.string().allow('').optional(),
-    team: Joi.string().allow('').optional(),
-    ranking: RankingByPositionSchema.optional(),
-    expired: Joi.boolean().optional(),
-    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1),
-    matchup: TeamMatchupSchema.optional(),
-    injury: InjurySchema.optional()
+    name: Joi.string().allow('').allow(null).optional(),
+    team: Joi.string().allow('').allow(null).optional(),
+    ranking: RankingByPositionSchema.allow(null).optional(),
+    expired: Joi.boolean().allow(null).optional(),
+    byeWeek: Joi.number().integer().optional().max(weekService.weeks().length).min(1).allow(null),
+    matchup: TeamMatchupSchema.optional().allow(null),
+    injury: InjurySchema.optional().allow(null)
 }).unknown();
 
 export interface Rankings {

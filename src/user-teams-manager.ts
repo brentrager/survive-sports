@@ -1,4 +1,4 @@
-// tslint:disable:quotemark
+// tslint:disable:quotemark max-line-length
 import LabelledLogger from './labelled-logger';
 import { PlayersManager } from './players-manager';
 import { UserTeams, UserTeamsModel, PlayersByPosition, PlayersById, Player, UserTeam, POSITIONS, TEAM_COMPOSITION, RankingByPosition } from './models/league';
@@ -77,9 +77,8 @@ export class UserTeamsManager {
 
     isPlayerExpiredInThisWeek(player: Player, week: number): boolean {
         // If it's for this week and the game is in the past, make the player blank.
-        if (player && player.ranking && player.position in player.ranking) {
-            const rank = player.ranking[player.position];
-            const gameTime = moment(rank.gameTime).tz('America/New_York');
+        if (player && player.matchup && player.matchup.team.kickoff) {
+            const gameTime = moment(player.matchup.team.kickoff).tz('America/New_York');
 
             if (weekService.getWeekFromDate(gameTime) === week
                 && gameTime < moment().tz('America/New_York')) {
@@ -92,9 +91,8 @@ export class UserTeamsManager {
 
     isPlayerYetToPlayInThisWeek(player: Player, week: number): boolean {
         // If it's for this week and the game is in the past, make the player blank.
-        if (player && player.ranking && player.position in player.ranking) {
-            const rank = player.ranking[player.position];
-            const gameTime = moment(rank.gameTime).tz('America/New_York');
+        if (player && player.matchup && player.matchup.team.kickoff) {
+            const gameTime = moment(player.matchup.team.kickoff).tz('America/New_York');
 
             if (weekService.getWeekFromDate(gameTime) === week
                 && gameTime > moment().tz('America/New_York')) {
@@ -116,7 +114,7 @@ export class UserTeamsManager {
 
             for (const position of POSITIONS) {
                 availablePlayersForUser[position] = availablePlayersForUser[position].filter(player => {
-                    return !this.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id);
+                    return !this.isPlayerExpiredInThisWeek(player, currentWeek) && !playerIdSetForUser.has(player.id) && !(player.byeWeek === weekService.currentWeek());
                 });
             }
 
@@ -259,10 +257,8 @@ export class UserTeamsManager {
                                 if (this.isPlayerYetToPlayInThisWeek(actualPlayer, userTeam.week)) {
                                     for (const key in actualPlayer) {
                                         if ((actualPlayer as any).hasOwnProperty(key)) {
-                                            if (key === 'ranking') {
-                                                (actualPlayer as any)[key] = {};
-                                            } else if (key !== 'position') {
-                                                (actualPlayer as any)[key] = '';
+                                            if (key !== 'position') {
+                                                (actualPlayer as any)[key] = null;
                                             }
                                         }
                                     }
