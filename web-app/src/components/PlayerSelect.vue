@@ -145,6 +145,7 @@ export default class PlayerSelect extends Vue {
                                 vm.mySelected = newVal;
                                 vm.formResults[vm.formResultsIndex] = newVal;
                                 vm.$emit('selected');
+                                vm.selected = newVal;
                             }
                         });
                     });

@@ -190,6 +190,8 @@ export default class Team extends Vue {
                     };
                 }
 
+                this.formResults = this.currentTeam.team.map((x) => x.id);
+
                 if (this.currentlySelectedSubject) {
                     this.currentlySelectedSubject.next(new Set(this.currentTeam.team.filter((player) => player.id !== '').map((player) => player.id)));
                 }
