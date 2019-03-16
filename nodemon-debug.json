@@ -1,0 +1,11 @@
+{
+    "watch": ["src"],
+    "ext": "ts",
+    "ignore": [
+        "src/**/*.spec.ts",
+        ".git",
+        "node_modules",
+        "dist"
+    ],
+    "exec": "kill-port --port 9229; npm run debug"
+  }
