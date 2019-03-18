@@ -7,6 +7,7 @@ import { ApiServer } from './api-server';
 import { FantasyPros } from './fantasy-pros';
 import LabelledLogger from './labelled-logger';
 import { UserTeamsManager } from './user-teams-manager';
+import { MarchMadnessManager } from './march-madness-manager';
 
 const logger = new LabelledLogger('Main');
 
@@ -34,11 +35,13 @@ const logger = new LabelledLogger('Main');
         const mfl = new MFL();
         const fantasyPros = new FantasyPros();
         const playersManager = new PlayersManager(db, mfl, fantasyPros);
-        await playersManager.update();
+        //await playersManager.update();
 
         const userTeamsManager = new UserTeamsManager(playersManager);
 
-        const apiServer = new ApiServer(playersManager, userTeamsManager);
+        const marchMadnessManager = new MarchMadnessManager();
+
+        const apiServer = new ApiServer(playersManager, userTeamsManager, marchMadnessManager);
         await apiServer.start();
     } catch (error) {
         logger.error(`General error: ${error}`);

@@ -9,10 +9,13 @@
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <router-link active-class="active" to="/" class="nav-link" exact>League</router-link>
+                    <router-link active-class="active" to="/" class="nav-link" exact>Home</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link active-class="active" to="/results" class="nav-link" exact>Results</router-link>
                 </li>
                 <li class="nav-item" v-if="authenticated">
-                    <router-link active-class="active" to="/team" class="nav-link" exact>Team</router-link>
+                    <router-link active-class="active" to="/picks" class="nav-link" exact>Make Picks</router-link>
                 </li>
             </ul>
             <button class="btn btn-outline-banner my-2 my-sm-0" v-if="!authenticated" @click="authService.login()">Sign-In</button>
@@ -20,7 +23,7 @@
                 <template v-if="user">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <router-link active-class="active" to="/team" class="nav-link" exact>{{ user.name }}</router-link>
+                            <router-link active-class="active" to="/picks" class="nav-link" exact>{{ user.name }}</router-link>
                         </li>
                     </ul>
                     <img v-if="user.picture" v-bind:src="user.picture" class="mr-2 mr-sm-2" />

@@ -22,6 +22,8 @@ export const UserSchema = Joi.object().keys({
     picture: Joi.string().optional()
 }).unknown();
 
+export const UsersSchema = Joi.array().items(UserSchema).required();
+
 export const UserMongooseSchema = new mongoose.Schema({
     id: {
         type: String,

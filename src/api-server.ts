@@ -14,6 +14,8 @@ import { UserTeamsModel, UserTeams, PlayersByPosition, POSITIONS, TeamPayloadSch
 import { UserTeamsManager } from './user-teams-manager';
 import weekService from './week-service';
 import * as Joi from 'joi';
+import { MarchMadnessManager } from './march-madness-manager';
+import { ResultsSchema, PicksSchema, ChoiceSchema, ChoicesSchema, Choices, ChoiceListSchema } from './models/march-madness';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -49,7 +51,7 @@ export class ApiServer {
         }
     });
 
-    constructor(private playersManager: PlayersManager, private userTeamsManager: UserTeamsManager) {
+    constructor(private playersManager: PlayersManager, private userTeamsManager: UserTeamsManager, private marchMadnessManager: MarchMadnessManager) {
         this.logger = new LabelledLogger('ApiServer');
 
         this.playersManager.playersByPosition().subscribe(playersByPosition => {
@@ -316,6 +318,117 @@ export class ApiServer {
                 response: {
                     status: {
                         200: UserSchema.required(),
+                        401: BoomErrorSchema
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
+            path: '/api/march-madness/user/choices',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const choiceList = await this.marchMadnessManager.getUserChoices(user);
+
+                return choiceList;
+            },
+            options: {
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: ChoiceListSchema.required(),
+                        401: BoomErrorSchema
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
+            path: '/api/march-madness/results',
+            handler: async (req, h) => {
+                const results = await this.marchMadnessManager.getResults();
+
+                return results;
+            },
+            options: {
+                response: {
+                    status: {
+                        200: ResultsSchema.required(),
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'GET',
+            path: '/api/march-madness/user/picks',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                const picks = this.marchMadnessManager.getPicksByUser(user);
+
+                return picks;
+            },
+            options: {
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: PicksSchema.required(),
+                        401: BoomErrorSchema
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'PUT',
+            path: '/api/march-madness/user/picks',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                let userTeam: UserTeam | undefined;
+
+                try {
+                    const picks = await this.marchMadnessManager.setPickForUser(user, req.payload as Choices);
+
+                    return picks;
+                } catch (error) {
+                    this.logger.error(`Error in PUT /api/user/team: ${error}`);
+                    throw Boom.badRequest((error as Error).message);
+                }
+            },
+            options: {
+                auth: 'jwt',
+                validate: {
+                    payload: ChoicesSchema.required(),
+                    failAction: onPayloadValidationFailure
+                },
+                response: {
+                    status: {
+                        200: PicksSchema.required(),
+                        400: BoomErrorSchema,
                         401: BoomErrorSchema
                     },
                     failAction: onResponseValidationFailure
