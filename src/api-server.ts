@@ -15,7 +15,7 @@ import { UserTeamsManager } from './user-teams-manager';
 import weekService from './week-service';
 import * as Joi from 'joi';
 import { MarchMadnessManager } from './march-madness-manager';
-import { ResultsSchema, PicksSchema, ChoiceSchema, ChoicesSchema, Choices, ChoiceListSchema } from './models/march-madness';
+import { ResultsSchema, PicksSchema, ChoiceSchema, ChoicesSchema, Choices, ChoiceListSchema, PicksArraySchema } from './models/march-madness';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -344,7 +344,7 @@ export class ApiServer {
                 auth: 'jwt',
                 response: {
                     status: {
-                        200: ChoiceListSchema.required(),
+                        200: Joi.array().items(ChoiceListSchema).required(),
                         401: BoomErrorSchema
                     },
                     failAction: onResponseValidationFailure
@@ -381,7 +381,7 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
-                const picks = this.marchMadnessManager.getPicksByUser(user);
+                const picks = await this.marchMadnessManager.getPicksByUser(user);
 
                 return picks;
             },
@@ -389,7 +389,7 @@ export class ApiServer {
                 auth: 'jwt',
                 response: {
                     status: {
-                        200: PicksSchema.required(),
+                        200: PicksArraySchema.required(),
                         401: BoomErrorSchema
                     },
                     failAction: onResponseValidationFailure
@@ -411,7 +411,7 @@ export class ApiServer {
                 let userTeam: UserTeam | undefined;
 
                 try {
-                    const picks = await this.marchMadnessManager.setPickForUser(user, req.payload as Choices);
+                    const picks = await this.marchMadnessManager.setPickForUser(user, req.payload as Array<Choices>);
 
                     return picks;
                 } catch (error) {
@@ -422,12 +422,12 @@ export class ApiServer {
             options: {
                 auth: 'jwt',
                 validate: {
-                    payload: ChoicesSchema.required(),
+                    payload: Joi.array().items(ChoicesSchema).required(),
                     failAction: onPayloadValidationFailure
                 },
                 response: {
                     status: {
-                        200: PicksSchema.required(),
+                        200: PicksArraySchema.required(),
                         400: BoomErrorSchema,
                         401: BoomErrorSchema
                     },

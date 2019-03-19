@@ -36,7 +36,7 @@ export const ChoiceListMongoSchema = new mongoose.Schema({
     choices: [ChoiceMongooseSchema]
 });
 
-export const ChoiceListModel = mongoose.model('marchMadnessChoiceList', ChoiceMongooseSchema);
+export const ChoiceListModel = mongoose.model('marchMadnessChoiceList', ChoiceListMongoSchema);
 
 export const ChoiceListSchema = Joi.object().keys({
     choices: Joi.array().items(ChoiceSchema).required()
@@ -128,6 +128,8 @@ export const PicksSchema = Joi.object().keys({
     bestRound: RoundSchema.required(),
     tieBreaker: SeedSchema.required()
 });
+
+export const PicksArraySchema = Joi.array().items(PicksSchema);
 
 export interface Results {
     picks: Picks[];

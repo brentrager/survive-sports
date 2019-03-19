@@ -40,6 +40,7 @@ const logger = new LabelledLogger('Main');
         const userTeamsManager = new UserTeamsManager(playersManager);
 
         const marchMadnessManager = new MarchMadnessManager();
+        marchMadnessManager.start();
 
         const apiServer = new ApiServer(playersManager, userTeamsManager, marchMadnessManager);
         await apiServer.start();
