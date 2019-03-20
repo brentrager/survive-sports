@@ -4,8 +4,11 @@
             {{ picks.user.name }} <img v-if="picks.user.picture" v-bind:src="picks.user.picture" class="mr-2"/>
             <button v-if="!hasGameStarted" type="button" class="btn btn-primary mr-2" @click="computeAndSaveEntry()" :disabled="!isDirty">Save Entry</button>
             <button v-if="!hasGameStarted" type="button" class="btn btn-danger" @click="removeEntry(picksIndex)">Remove Entry</button>
+            <div class="alert alert-danger mt-2" role="alert" v-if="error">
+                {{ error }}
+            </div>
             <div class="row">
-                <div class="mt-2 col-sm-4" v-for="(choices, index1) of picks.choices" :key="index1">
+                <div class="mt-2 col-lg-4" v-for="(choices, index1) of picks.choices" :key="index1">
                     <div class="card">
                         <h5 class="card-header">Round of {{choices.roundOf}}</h5>
                         <div class="card-body">
@@ -85,21 +88,12 @@ export default class MarchMadnessPicksComponent extends Vue {
     private formResults!: Array<string>;
     private isDirty!: boolean;
     private currentChoices!: Array<Choice>;
+    private error: string | undefined;
 
-    private data() {
-        this.isDirty = false;
+    private seedPicks() {
         const currentRound = marchMadnessRoundService.availableRound();
         const roundIndex = ROUND_INDEXES[currentRound];
         const roundSelectionsCount = ROUND_SELECTIONS[currentRound];
-        this.currentlySelectedSubject = new BehaviorSubject(new Set());
-        this.picks.availableChoices = this.picks.availableChoices && this.picks.availableChoices.sort((a, b) => {
-            return a.seed - b.seed;
-        });
-        this.choicesSubject = new BehaviorSubject<Array<Choice> | undefined>(this.picks.availableChoices);
-        this.formResults = [];
-        for (let i = 0; i < roundSelectionsCount; i++) {
-            this.formResults.push('');
-        }
         if (this.picks.choices.length <= roundIndex) {
             this.picks.choices.push({
                 roundOf: currentRound,
@@ -115,6 +109,33 @@ export default class MarchMadnessPicksComponent extends Vue {
                 });
             }
         }
+    }
+
+    private updated() {
+        this.seedPicks();
+    }
+
+    private mounted() {
+        this.$nextTick(() => {
+            this.currentlySelectedSubject.next(new Set(this.formResults));
+        });
+    }
+
+    private data() {
+        this.isDirty = false;
+        const currentRound = marchMadnessRoundService.availableRound();
+        const roundIndex = ROUND_INDEXES[currentRound];
+        const roundSelectionsCount = ROUND_SELECTIONS[currentRound];
+        this.currentlySelectedSubject = new BehaviorSubject(new Set());
+        this.picks.availableChoices = this.picks.availableChoices && this.picks.availableChoices.sort((a, b) => {
+            return a.seed - b.seed;
+        });
+        this.choicesSubject = new BehaviorSubject<Array<Choice> | undefined>(this.picks.availableChoices);
+        this.formResults = [];
+        for (let i = 0; i < roundSelectionsCount; i++) {
+            this.formResults.push('');
+        }
+        this.seedPicks();
 
         return {
             isDirty: this.isDirty,
@@ -122,7 +143,8 @@ export default class MarchMadnessPicksComponent extends Vue {
             roundSelectionsCount: ROUND_SELECTIONS[currentRound],
             currentRound,
             choicesSubject: this.choicesSubject,
-            currentlySelectedSubject: this.currentlySelectedSubject
+            currentlySelectedSubject: this.currentlySelectedSubject,
+            error: this.error
         };
     }
 
@@ -139,6 +161,18 @@ export default class MarchMadnessPicksComponent extends Vue {
         if (!_.isEqual(formResultsSet, this.currentlySelectedSubject.getValue())) {
             this.currentlySelectedSubject.next(new Set(this.formResults));
         }
+
+        if (!this.isDirty) {
+            this.clearError();
+        }
+    }
+
+    private setError(err: string) {
+        this.error = err;
+    }
+
+    private clearError() {
+        this.error = undefined;
     }
 
     private async computeAndSaveEntry() {
@@ -156,7 +190,15 @@ export default class MarchMadnessPicksComponent extends Vue {
 
         choices.choices = Array.from(selections).map((x) => choicesByTeam.get(x));
 
-        this.saveEntry(this.picksIndex, choices);
+        try {
+            await this.saveEntry(this.picksIndex, choices);
+            this.isDirty = false;
+            this.clearError();
+        } catch (error) {
+            log.error(`Error saving entry: ${error}`);
+            this.setError('Error saving. Make sure only use one team per region.');
+        }
+
     }
 }
 </script>

@@ -1,6 +1,7 @@
 <template>
     <div class="rules">
         <h1>Survive March Madness 2019</h1>
+        <p>$25 per entry.</p>
         <p>You can only pick a team once.</p>
         <p>One team from each region in round 1.</p>
         <p>One team from two regions in round 2.</p>

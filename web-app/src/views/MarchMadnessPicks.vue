@@ -4,7 +4,7 @@
         <div v-if="!hasGameStarted">
             <button type="button" class="btn btn-primary" @click="addEntry">Add Entry</button>
         </div>
-        <div v-for="(pick, index) of picks" v-bind:key="index">
+        <div v-for="(pick, index) of computedPicks" v-bind:key="index">
             <march-madness-picks-component
                 v-bind:picks="pick"
                 v-bind:picksIndex="index"
@@ -32,6 +32,10 @@ export default class MarchMadnessPicks extends Vue {
     public authenticated = false;
     public picks: Array<Picks> = [];
     public choices: Array<ChoiceList> = [];
+
+    get computedPicks() {
+        return this.picks;
+    }
 
     private data() {
         authService.authenticatedSubject.subscribe((authenticated) => {
@@ -72,6 +76,7 @@ export default class MarchMadnessPicks extends Vue {
         try {
             const response = await authService.request('DELETE', `/api/march-madness/user/picks/${index}`);
             this.picks = response.data;
+            this.$forceUpdate();
         } catch (error) {
             log.error(`Error removing March Madness user picks: ${error}`);
         }
@@ -81,8 +86,10 @@ export default class MarchMadnessPicks extends Vue {
         try {
             const response = await authService.request('PUT', `/api/march-madness/user/picks/${index}`, choices);
             this.picks = response.data;
+            this.$forceUpdate();
         } catch (error) {
-            log.error(`Error removing March Madness user picks: ${error}`);
+            log.error(`Error saving March Madness user picks: ${error}`);
+            throw error;
         }
     }
 }

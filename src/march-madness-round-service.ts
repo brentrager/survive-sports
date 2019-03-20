@@ -31,7 +31,7 @@ class MarchMadnessRoundService {
     }
 
     public viewableRound(): number {
-        for (const round of this.rounds.reverse()) {
+        for (const round of this.rounds.slice().reverse()) {
             if (moment().tz('America/New_York').isSameOrAfter(round.start)) {
                 return round.roundOf;
             }
