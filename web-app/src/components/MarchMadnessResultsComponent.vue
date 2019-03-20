@@ -2,9 +2,9 @@
     <div class="results" v-if="results">
         <h1>Results</h1>
 
-        <table class="table" v-if="results.results && results.results.length">
+        <table class="table" v-if="results.picks && results.picks.length">
             <tbody>
-                <tr v-for="(picks, index) of results.results" v-bind:key="index">
+                <tr v-for="(picks, index) of results.picks" v-bind:key="index">
                     <th scope="row" class="thead-dark">{{ picks.user.name}}</th>
                     <td></td>
                 </tr>

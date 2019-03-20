@@ -1,16 +1,12 @@
 <template>
-    <div class="rules">
-        <h1>Survive March Madness 2019</h1>
-        <p>You can only pick a team once.</p>
-        <p>One team from each region in round 1.</p>
-        <p>One team from two regions in round 2.</p>
-        <p>One team rom any region for every round after that.</p>
-        <p>Make your selection(s) for each round before all games tip that day.</p>
-        <p>If any of your teams lose, you're out.</p>
-        <p>Winner takes all.</p>
-        <p>Tie breaker is the higest seed chosen in any round, after that, ties will occur.</p>
-        <p v-if="authenticated">Make your selections.</p>
-        <p v-else><a href="#" @click.prevent="authService.login()">Sign-In</a> to get started.</p>
+    <div class="picks">
+        <h1>Picks</h1>
+        <div v-if="!hasGameStarted">
+            <button type="button" class="btn btn-primary" @click="addEntry">Add Entry</button>
+        </div>
+        <div v-for="(pick, index) of picks" v-bind:key="index">
+            <march-madness-picks-component v-bind:picks="pick" v-bind:picksIndex="index" v-bind:removeEntry="removeEntry"></march-madness-picks-component>
+        </div>
     </div>
 </template>
 
@@ -18,11 +14,20 @@
 import { Component, Vue } from 'vue-property-decorator';
 import * as log from 'loglevel';
 import authService from '../services/AuthService';
+import marchMadnessRoundService from '../services/MarchMadnessRoundService';
+import { Picks, ChoiceList } from '@/models/march-madness';
+import MarchMadnessPicksComponent from '../components/MarchMadnessPicksComponent.vue';
 
 
-@Component({})
-export default class MarchMadnessRules extends Vue {
+@Component({
+    components: {
+        MarchMadnessPicksComponent
+    },
+})
+export default class MarchMadnessPicks extends Vue {
     public authenticated = false;
+    public picks: Array<Picks> = [];
+    public choices: Array<ChoiceList> = [];
 
     private data() {
         authService.authenticatedSubject.subscribe((authenticated) => {
@@ -30,20 +35,41 @@ export default class MarchMadnessRules extends Vue {
         });
         return {
             authService,
-            authenticated: this.authenticated
+            authenticated: this.authenticated,
+            hasGameStarted: marchMadnessRoundService.hasGameStarted(),
+            picks: this.picks,
+            choices: this.choices
         };
     }
 
     private created() {
-
+        this.start();
     }
 
-    private async started() {
+    private async start() {
         try {
             const response = await authService.request('GET', '/api/march-madness/user/picks');
-            // const picks
+            this.picks = response.data;
         } catch (error) {
             log.error(`Error getting March Madness user picks: ${error}`);
+        }
+    }
+
+    private async addEntry() {
+        try {
+            const response = await authService.request('POST', '/api/march-madness/user/picks');
+            this.picks = response.data;
+        } catch (error) {
+            log.error(`Error adding March Madness user picks: ${error}`);
+        }
+    }
+
+    private async removeEntry(index: number) {
+        try {
+            const response = await authService.request('DELETE', `/api/march-madness/user/picks/${index}`);
+            this.picks = response.data;
+        } catch (error) {
+            log.error(`Error removing March Madness user picks: ${error}`);
         }
     }
 }

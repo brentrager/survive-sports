@@ -20,14 +20,36 @@ class MarchMadnessRoundService {
     /**
      * Returns the current NFL week. The maximum this will return is week 17.
      */
-    public availableRound() {
+    public availableRound(): number {
         for (const round of this.rounds) {
             if (moment().tz('America/New_York').isBefore(round.start)) {
                 return round.roundOf;
             }
         }
 
-        return null;
+        return 64;
+    }
+
+    public viewableRound(): number {
+        for (const round of this.rounds.reverse()) {
+            if (moment().tz('America/New_York').isSameOrAfter(round.start)) {
+                return round.roundOf;
+            }
+        }
+
+        return 0;
+    }
+
+    public isViewableRound(round: number) {
+        return round >= this.viewableRound();
+    }
+
+    public isAvailableRound(round: number) {
+        return round <= this.availableRound();
+    }
+
+    public hasGameStarted() {
+        return !this.isAvailableRound(64);
     }
 }
 

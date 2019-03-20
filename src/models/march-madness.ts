@@ -29,7 +29,7 @@ export const ChoiceSchema = Joi.object().keys({
 });
 
 export interface ChoiceList {
-    choices: Choice[]
+    choices: Array<Choice>;
 }
 
 export const ChoiceListMongoSchema = new mongoose.Schema({
@@ -44,7 +44,7 @@ export const ChoiceListSchema = Joi.object().keys({
 
 export interface Choices {
     roundOf: number;
-    choices: Choice[];
+    choices: Array<Choice>;
 }
 
 export const ChoicesMongooseSchema = new mongoose.Schema({
@@ -54,42 +54,42 @@ export const ChoicesMongooseSchema = new mongoose.Schema({
 
 export const ChoicesSchema = Joi.object().keys({
     roundOf: RoundSchema.required(),
-    choices: Joi.array().min(1).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().min(1).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf64ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(64).required(),
-    choices: Joi.array().length(4).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(4).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf32ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(32).required(),
-    choices: Joi.array().length(2).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(2).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf16ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(16).required(),
-    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf8ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(8).required(),
-    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf4ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(4).required(),
-    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.team).required()
 });
 
 export const RoundOf2ChoicesSchema = Joi.object().keys({
     roundOf: Joi.number().allow(2).required(),
-    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region).required()
+    choices: Joi.array().length(1).items(ChoiceSchema).unique((a, b) => a.region === b.region || a.team === b.tea).required()
 });
 
 export interface PicksMongoose {
     userId: string;
-    choices: Choices[];
+    choices: Array<Choices>;
     eliminated: boolean;
     bestRound: number;
     tieBreaker: number;
@@ -97,18 +97,15 @@ export interface PicksMongoose {
 
 export interface Picks {
     user: User;
-    choices: Choices[];
+    choices: Array<Choices>;
     eliminated: boolean;
     bestRound: number;
     tieBreaker: number;
+    availableChoices?: Array<Choice>;
 }
 
 export const PicksMongooseSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        index: true,
-        unique: true
-    },
+    userId: String,
     choices: [ChoicesMongooseSchema],
     eliminated: Boolean,
     bestRound: Number,
@@ -126,13 +123,14 @@ export const PicksSchema = Joi.object().keys({
         RoundOf2ChoicesSchema).required(),
     eliminated: Joi.boolean().required(),
     bestRound: RoundSchema.required(),
-    tieBreaker: SeedSchema.required()
+    tieBreaker: SeedSchema.required(),
+    availableChoices: Joi.array().items(ChoiceSchema).optional()
 });
 
 export const PicksArraySchema = Joi.array().items(PicksSchema);
 
 export interface Results {
-    picks: Picks[];
+    picks: Array<Picks>;
 }
 
 export const ResultsSchema = Joi.object().keys({

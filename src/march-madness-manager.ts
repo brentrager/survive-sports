@@ -45,13 +45,36 @@ export class MarchMadnessManager {
         this.updateResults();
     }
 
-    private picksMongooseToPicksConverter(picksMongoose: PicksMongoose, user: User): Picks {
+    private async getChoices() {
+        const choiceListDoc = (await ChoiceListModel.findOne({}).exec());
+
+        if (!choiceListDoc) {
+            throw new Error('Unable to load choice list');
+        }
+
+        const choiceList: ChoiceList = await ChoiceListSchema.validate(choiceListDoc.toObject(), { stripUnknown: true });
+        choiceList.choices = choiceList.choices.filter(x => !x.eliminated);
+
+        return choiceList;
+    }
+
+    private picksMongooseToPicksConverter(picksMongoose: PicksMongoose, user: User, choiceList: ChoiceList): Picks {
+        const teamSet = new Set();
+        for (const choices of picksMongoose.choices) {
+            for (const choice of choices.choices) {
+                teamSet.add(choice.team);
+            }
+        }
+
+        const availableChoices = choiceList.choices.filter(x => !teamSet.has(x.team));
+
         return {
             user,
             choices: picksMongoose.choices,
             eliminated: picksMongoose.eliminated,
             bestRound: picksMongoose.bestRound,
-            tieBreaker: picksMongoose.tieBreaker
+            tieBreaker: picksMongoose.tieBreaker,
+            availableChoices
         };
     }
 
@@ -175,59 +198,69 @@ export class MarchMadnessManager {
         return results;
     }
 
-    private async getOrCreatePicksByUser(user: User) {
-        let picksDoc = await PicksModel.findOne({ userId: user.id }).exec();
-        if (!picksDoc) {
-            const picksMongoose: PicksMongoose = {
-                userId: user.id,
-                choices: [],
-                eliminated: false,
-                bestRound: 64,
-                tieBreaker: 1
-            };
-            picksDoc = await PicksModel.create(picksMongoose);
+    public async createPicksForUser(user: User) {
+        if (marchMadnessRoundService.hasGameStarted()) {
+            throw new Error('Game already started.');
+        }
+        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+
+        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+
+        const newPicksMongoose = {
+            userId: user.id,
+            choices: [],
+            eliminated: false,
+            bestRound: 64,
+            tieBreaker: 1
+        };
+
+        picksArrayMongoose.push(newPicksMongoose);
+
+        await PicksModel.create(newPicksMongoose);
+
+        const choiceList = await this.getChoices();
+
+        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
+
+        return picks;
+    }
+
+    public async deletePicksForUser(user: User, pickIndex: number) {
+        if (marchMadnessRoundService.hasGameStarted()) {
+            throw new Error('Game already started.');
+        }
+        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+
+        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+
+        if (picksArrayMongoose.length > pickIndex) {
+            picksArrayMongoose.splice(pickIndex, 1);
+        } else {
+            throw new Error('Pick index does not exist');
         }
 
-        return picksDoc.toObject();
+        const id = picksArrayDoc[pickIndex]._id;
+
+        await PicksModel.deleteOne({ _id: id }).exec();
+
+        const choiceList = await this.getChoices();
+
+        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
+
+        return picks;
     }
 
     public async getPicksByUser(user: User) {
         let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
         let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
-        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user));
+        const choiceList = await this.getChoices();
+        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
         const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
         return picks;
-    }
-
-    public async getUserChoices(user: User) {
-        const choiceListDoc = (await ChoiceListModel.findOne({}).exec());
-
-        if (!choiceListDoc) {
-            throw new Error('Unable to load choice list');
-        }
-
-        const choiceList: ChoiceList = await ChoiceListSchema.validate(choiceListDoc.toObject(), { stripUnknown: true });
-        choiceList.choices = choiceList.choices.filter(x => !x.eliminated);
-
-        const picksArray = await this.getPicksByUser(user);
-
-
-        const choiceListArray: Array<ChoiceList> = [];
-
-        for (const picks of picksArray) {
-            const teamSet = new Set();
-            for (const choices of picks.choices) {
-                for (const choice of choices.choices) {
-                    teamSet.add(choice.team);
-                }
-            }
-
-            choiceListArray.push({ choices: choiceList.choices.filter(x => !teamSet.has(x.team)) });
-        }
-
-        return choiceListArray;
     }
 
     public async setPickForUser(user: User, choicesArray: Array<Choices>) {

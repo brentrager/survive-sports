@@ -15,7 +15,7 @@ import { UserTeamsManager } from './user-teams-manager';
 import weekService from './week-service';
 import * as Joi from 'joi';
 import { MarchMadnessManager } from './march-madness-manager';
-import { ResultsSchema, PicksSchema, ChoiceSchema, ChoicesSchema, Choices, ChoiceListSchema, PicksArraySchema } from './models/march-madness';
+import { ResultsSchema, PicksSchema, ChoiceSchema, ChoicesSchema, Choices, ChoiceListSchema, PicksArraySchema, Picks } from './models/march-madness';
 
 const APP_METADATA = 'https://survive-sports.com/app_metadata';
 const USER_METADATA = 'https://survive-sports.com/user_metadata';
@@ -69,7 +69,7 @@ export class ApiServer {
         await this.server.register(inert);
 
         this.server.ext('onRequest', (request, h) => {
-            this.logger.info(`Request: ${request.path} - Payload: ${request.payload ? JSON.stringify(request.payload) : 'None'}`);
+            this.logger.info(`Request: ${request.method} ${request.path} - Payload: ${request.payload ? JSON.stringify(request.payload) : 'None'}`);
 
             return h.continue;
         });
@@ -327,33 +327,6 @@ export class ApiServer {
 
         this.server.route({
             method: 'GET',
-            path: '/api/march-madness/user/choices',
-            handler: async (req, h) => {
-                const creds = (req.auth.credentials as any).payload!;
-                const user = await ApiServer.getUser(creds);
-
-                if (!user) {
-                    throw Boom.unauthorized('user does not exist');
-                }
-
-                const choiceList = await this.marchMadnessManager.getUserChoices(user);
-
-                return choiceList;
-            },
-            options: {
-                auth: 'jwt',
-                response: {
-                    status: {
-                        200: Joi.array().items(ChoiceListSchema).required(),
-                        401: BoomErrorSchema
-                    },
-                    failAction: onResponseValidationFailure
-                }
-            }
-        });
-
-        this.server.route({
-            method: 'GET',
             path: '/api/march-madness/results',
             handler: async (req, h) => {
                 const results = await this.marchMadnessManager.getResults();
@@ -398,6 +371,82 @@ export class ApiServer {
         });
 
         this.server.route({
+            method: 'POST',
+            path: '/api/march-madness/user/picks',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                try {
+                    const picks = await this.marchMadnessManager.createPicksForUser(user);
+
+                    return picks;
+                } catch (error) {
+                    this.logger.error(`Error in POST /api/march-madness/user/picks: ${error}`);
+                    throw Boom.badRequest((error as Error).message);
+                }
+            },
+            options: {
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: PicksArraySchema.required(),
+                        400: BoomErrorSchema,
+                        401: BoomErrorSchema
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
+            method: 'DELETE',
+            path: '/api/march-madness/user/picks/{pickIndex}',
+            handler: async (req, h) => {
+                const creds = (req.auth.credentials as any).payload!;
+                const user = await ApiServer.getUser(creds);
+
+                if (!user) {
+                    throw Boom.unauthorized('user does not exist');
+                }
+
+                let pickIndex: number = -1;
+                try {
+                    pickIndex = parseInt(req.params.pickIndex, 10);
+
+                    await Joi.number().min(0).validate(pickIndex);
+                } catch (error) {
+                    this.logger.error(`Error in DELETE /api/march-madness/user/picks: ${error}`);
+                    throw Boom.badRequest('Pick Index must be a number.');
+                }
+
+                try {
+                    const picks = await this.marchMadnessManager.deletePicksForUser(user, pickIndex);
+
+                    return picks;
+                } catch (error) {
+                    this.logger.error(`Error in DELETE /api/march-madness/user/picks: ${error}`);
+                    throw Boom.badRequest((error as Error).message);
+                }
+            },
+            options: {
+                auth: 'jwt',
+                response: {
+                    status: {
+                        200: PicksArraySchema.required(),
+                        400: BoomErrorSchema,
+                        401: BoomErrorSchema
+                    },
+                    failAction: onResponseValidationFailure
+                }
+            }
+        });
+
+        this.server.route({
             method: 'PUT',
             path: '/api/march-madness/user/picks',
             handler: async (req, h) => {
@@ -415,7 +464,7 @@ export class ApiServer {
 
                     return picks;
                 } catch (error) {
-                    this.logger.error(`Error in PUT /api/user/team: ${error}`);
+                    this.logger.error(`Error in PUT /api/march-madness/user/picks: ${error}`);
                     throw Boom.badRequest((error as Error).message);
                 }
             },
@@ -457,10 +506,10 @@ export class ApiServer {
 
             if (response.isBoom) {
                 const responseBoom: Boom = response;
-                this.logger.info(`Response for ${request.path}: ${responseBoom.output.statusCode} - ${JSON.stringify(responseBoom.output.payload)}`);
+                this.logger.info(`Response for ${request.method} ${request.path}: ${responseBoom.output.statusCode} - ${JSON.stringify(responseBoom.output.payload)}`);
             } else {
                 const responseHapi: hapi.ResponseObject = response;
-                this.logger.info(`Response for ${request.path}: ${responseHapi.statusCode}`);
+                this.logger.info(`Response for ${request.method} ${request.path}: ${responseHapi.statusCode}`);
             }
 
             return h.continue;

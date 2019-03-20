@@ -47,6 +47,10 @@ class MarchMadnessRoundService {
     public isAvailableRound(round: number) {
         return round <= this.availableRound();
     }
+
+    public hasGameStarted() {
+        return !this.isAvailableRound(64);
+    }
 }
 
 const marchMadnessRoundService = new MarchMadnessRoundService();
