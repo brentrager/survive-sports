@@ -61,8 +61,10 @@ export class MarchMadnessManager {
     private picksMongooseToPicksConverter(picksMongoose: PicksMongoose, user: User, choiceList: ChoiceList): Picks {
         const teamSet = new Set();
         for (const choices of picksMongoose.choices) {
-            for (const choice of choices.choices) {
-                teamSet.add(choice.team);
+            if (!marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
+                for (const choice of choices.choices) {
+                    teamSet.add(choice.team);
+                }
             }
         }
 
@@ -263,63 +265,61 @@ export class MarchMadnessManager {
         return picks;
     }
 
-    public async setPickForUser(user: User, choicesArray: Array<Choices>) {
-        const picksArray = await this.getPicksByUser(user);
-        let index = 0;
-        const resultPicksArray : Array<Picks> = [];
+    public async setPickForUser(user: User, pickIndex: number, choices: Choices) {
+        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
-        for (const choices of choicesArray) {
-            const round = await RoundSchema.validate(choices.roundOf);
+        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+        const choiceList = await this.getChoices();
+        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picksArray: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
-            if (!marchMadnessRoundService.isAvailableRound(round)) {
-                throw new Error(`Round ${round} cannot be set.`)
-            }
-
-            const picks = picksArray[index];
-
-            if (picks.eliminated) {
-                throw new Error(`User ${user.name} already eliminated.`);
-            }
-
-            const roundIndex = ROUND_INDEX_MAP[round];
-
-            if (picks.choices.length < roundIndex) {
-                throw new Error(`Can't set round ${round} because previous rounds are not set.`);
-            }
-
-            if (picks.choices.length >= roundIndex) {
-                throw new Error(`Can't set round ${round} that's already been set.`);
-            }
-
-            const roundSchema = ROUND_SCHEMA_MAP[round];
-
-            choices.choices = await roundSchema.validate(choices.choices);
-
-            picks.choices[roundIndex] = choices;
-
-            const teamSet = new Set();
-
-            for (const choices of picks.choices) {
-                for (const choice of choices.choices) {
-                    if (teamSet.has(choice.team)) {
-                        throw new Error(`Tried to select a team more than once: ${choice.team}`);
-                    }
-                    teamSet.add(choice.team);
-                }
-            }
-
-            picks.choices.forEach(choices => {
-                choices.choices.forEach
-            })
-
-            const picksMongoose = this.picksToPicksMongooseConverter(picks);
-
-            await PicksModel.findOneAndUpdate({ userId: user.id }, picksMongoose).exec();
-
-            resultPicksArray.push(picks);
-            index++;
+        if (picksArrayDoc.length <= pickIndex) {
+            throw new Error(`Pick index ${pickIndex} does not exist.`);
         }
 
-        return resultPicksArray;
+        const round = await RoundSchema.validate(choices.roundOf);
+
+        if (!marchMadnessRoundService.isAvailableRound(round)) {
+            throw new Error(`Round ${round} cannot be set.`)
+        }
+
+        const picks = picksArray[pickIndex];
+
+        if (picks.eliminated) {
+            throw new Error(`User ${user.name} already eliminated.`);
+        }
+
+        const roundIndex = ROUND_INDEX_MAP[round];
+
+        if (picks.choices.length < roundIndex) {
+            throw new Error(`Can't set round ${round} because previous rounds are not set.`);
+        }
+
+        const roundSchema = ROUND_SCHEMA_MAP[round];
+
+        choices = await roundSchema.validate(choices);
+
+        picks.choices[roundIndex] = choices;
+
+        const teamSet = new Set();
+
+        for (const choices of picks.choices) {
+            for (const choice of choices.choices) {
+                if (teamSet.has(choice.team)) {
+                    throw new Error(`Tried to select a team more than once: ${choice.team}`);
+                }
+                teamSet.add(choice.team);
+            }
+        }
+
+        picks.choices.forEach(choices => {
+            choices.choices.forEach
+        })
+
+        const picksMongoose = this.picksToPicksMongooseConverter(picks);
+
+        await PicksModel.findOneAndUpdate({ _id: picksArrayDoc[pickIndex]._id }, picksMongoose).exec();
+
+        return picksArray;
     }
 }

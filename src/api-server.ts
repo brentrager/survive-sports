@@ -448,7 +448,7 @@ export class ApiServer {
 
         this.server.route({
             method: 'PUT',
-            path: '/api/march-madness/user/picks',
+            path: '/api/march-madness/user/picks/{pickIndex}',
             handler: async (req, h) => {
                 const creds = (req.auth.credentials as any).payload!;
                 const user = await ApiServer.getUser(creds);
@@ -457,10 +457,18 @@ export class ApiServer {
                     throw Boom.unauthorized('user does not exist');
                 }
 
-                let userTeam: UserTeam | undefined;
+                let pickIndex: number = -1;
+                try {
+                    pickIndex = parseInt(req.params.pickIndex, 10);
+
+                    await Joi.number().min(0).validate(pickIndex);
+                } catch (error) {
+                    this.logger.error(`Error in DELETE /api/march-madness/user/picks: ${error}`);
+                    throw Boom.badRequest('Pick Index must be a number.');
+                }
 
                 try {
-                    const picks = await this.marchMadnessManager.setPickForUser(user, req.payload as Array<Choices>);
+                    const picks = await this.marchMadnessManager.setPickForUser(user, pickIndex, req.payload as Choices);
 
                     return picks;
                 } catch (error) {
@@ -471,7 +479,7 @@ export class ApiServer {
             options: {
                 auth: 'jwt',
                 validate: {
-                    payload: Joi.array().items(ChoicesSchema).required(),
+                    payload: ChoicesSchema.required(),
                     failAction: onPayloadValidationFailure
                 },
                 response: {
