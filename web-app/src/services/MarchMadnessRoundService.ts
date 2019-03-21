@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import * as Moment from 'moment-timezone';
+import { RoundSchema } from '@/models/march-madness';
 const moment = Moment;
 
 interface Round {
@@ -16,6 +17,14 @@ class MarchMadnessRoundService {
         { roundOf: 4, start: moment.tz('2019-04-06 6:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
         { roundOf: 2, start: moment.tz('2019-04-08 9:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
     ];
+    private roundsMap: Map<number, Moment.Moment> = new Map();
+
+    constructor() {
+        this.roundsMap = this.rounds.reduce((result, value) => {
+            result.set(value.roundOf, value.start);
+            return result;
+        }, new Map());
+    }
 
     /**
      * Returns the current available round.
@@ -51,6 +60,10 @@ class MarchMadnessRoundService {
 
     public hasGameStarted() {
         return !this.isAvailableRound(64);
+    }
+
+    public timeForRound(round: number) {
+        return this.roundsMap.get(round);
     }
 }
 

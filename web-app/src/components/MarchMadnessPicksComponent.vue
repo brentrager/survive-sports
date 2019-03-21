@@ -13,6 +13,9 @@
                         <h5 class="card-header">Round of {{choices.roundOf}}</h5>
                         <div class="card-body">
                             <div v-if="isAvailableRound(choices.roundOf)">
+                                <div class="alert alert-warning mt-2" role="alert">
+                                    Locks at {{ timeForRound(choices.roundOf) }} EDT
+                                </div>
                                 <div v-for="(choice, index) of choices.choices" :key="index" class="mt-2">
                                     <march-madness-team-select
                                         :selected="choice.team"
@@ -150,6 +153,10 @@ export default class MarchMadnessPicksComponent extends Vue {
 
     private isAvailableRound(round: number) {
         return marchMadnessRoundService.isAvailableRound(round);
+    }
+
+    private timeForRound(round: number): string {
+        return marchMadnessRoundService.timeForRound(round)!.format('M/D/YY h:mm a');
     }
 
     private newSelection() {
