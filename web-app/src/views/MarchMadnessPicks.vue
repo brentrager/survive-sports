@@ -4,6 +4,9 @@
         <div v-if="!hasGameStarted">
             <button type="button" class="btn btn-primary" @click="addEntry">Add Entry</button>
         </div>
+        <div class="alert alert-primary mt-2" role="alert">
+            We had our first bug this morning but that should be ironed out now. Sorry about that!
+        </div>
         <div v-for="(pick, index) of computedPicks" v-bind:key="index">
             <march-madness-picks-component
                 v-bind:picks="pick"
