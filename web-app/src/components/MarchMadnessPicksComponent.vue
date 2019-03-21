@@ -1,5 +1,5 @@
 <template>
-    <div class="picks-entry mt-2 card">
+    <div class="picks-entry mt-2 mr-2 card">
         <div class="card-body">
             {{ picks.user.name }} <img v-if="picks.user.picture" v-bind:src="picks.user.picture" class="mr-2"/>
             <button v-if="!hasGameStarted" type="button" class="btn btn-primary mr-2" @click="computeAndSaveEntry()" :disabled="!isDirty">Save Entry</button>

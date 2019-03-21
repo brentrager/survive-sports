@@ -62,9 +62,9 @@ export default class MarchMadnessTeamSelect extends Vue {
 
         return $(`
             <div class="row">
-                <div class="col-sm-1"><strong style="color:rgba(239, 100, 97, 1)">${choice.seed}</strong></div>
-                <div class="col-sm-7 mr-2">${choice.team}</div>
-                <div class="col-sm-2 mr-2"><small style="color:rgba(8, 178, 227, 1)">${choice.region}</small></div>
+                <div class="col-2"><strong style="color:rgba(239, 100, 97, 1)">${choice.seed}</strong></div>
+                <div class="col-6 mr-2">${choice.team}</div>
+                <div class="col-2 mr-2"><small style="color:rgba(8, 178, 227, 1)">${choice.region.toUpperCase()}</small></div>
             </div>
         `);
     }
@@ -125,7 +125,7 @@ export default class MarchMadnessTeamSelect extends Vue {
 <style lang="scss" scoped>
 select {
     width: 100%;
-    min-width: 50%;
+    //min-width: 50%;
 }
 
 .player-team {
