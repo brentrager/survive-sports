@@ -22,7 +22,7 @@ class MarchMadnessRoundService {
      */
     public availableRound(): number {
         for (const round of this.rounds) {
-            if (moment().tz('America/New_York').isBefore(round.start)) {
+            if (moment().tz('America/New_York').isBefore(round.start.tz('America/New_York'))) {
                 return round.roundOf;
             }
         }
@@ -32,7 +32,7 @@ class MarchMadnessRoundService {
 
     public viewableRound(): number {
         for (const round of this.rounds.slice().reverse()) {
-            if (moment().tz('America/New_York').isSameOrAfter(round.start)) {
+            if (moment().tz('America/New_York').isSameOrAfter(round.start.tz('America/New_York'))) {
                 return round.roundOf;
             }
         }
