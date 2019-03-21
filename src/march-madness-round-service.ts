@@ -1,6 +1,9 @@
 /* tslint:disable:max-line-length */
 import * as Moment from 'moment-timezone';
 const moment = Moment;
+import LabelledLogger from './labelled-logger';
+
+const logger = new LabelledLogger('MarchMadnessRoundService');
 
 interface Round {
     roundOf: number;
@@ -22,6 +25,7 @@ class MarchMadnessRoundService {
      */
     public availableRound(): number {
         for (const round of this.rounds) {
+            logger.info(`Time: ${moment().tz('America/New_York')} - ${round.start} - ${round.roundOf}`);
             if (moment().tz('America/New_York').isBefore(round.start)) {
                 return round.roundOf;
             }
