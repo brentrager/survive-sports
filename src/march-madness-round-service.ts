@@ -12,12 +12,12 @@ interface Round {
 
 class MarchMadnessRoundService {
     private rounds: Array<Round> = [
-        { roundOf: 64, start: moment('2019-03-21 12:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
-        { roundOf: 32, start: moment('2019-03-23 12:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
-        { roundOf: 16, start: moment('2019-03-28 7:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
-        { roundOf: 8, start: moment('2019-03-30 6:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
-        { roundOf: 4, start: moment('2019-04-06 6:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
-        { roundOf: 2, start: moment('2019-04-08 9:00 PM', 'YYYY-MM-DD h:mm a').tz('America/New_York')},
+        { roundOf: 64, start: moment.tz('2019-03-21 12:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 32, start: moment('2019-03-23 12:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 16, start: moment('2019-03-28 7:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 8, start: moment('2019-03-30 6:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 4, start: moment('2019-04-06 6:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 2, start: moment('2019-04-08 9:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
     ];
 
     /**
@@ -25,8 +25,8 @@ class MarchMadnessRoundService {
      */
     public availableRound(): number {
         for (const round of this.rounds) {
-            logger.info(`Time: ${moment().tz('America/New_York')} - ${round.start.tz('America/New_York')} - ${round.roundOf}`);
-            if (moment().tz('America/New_York').isBefore(round.start.tz('America/New_York'))) {
+            logger.info(`Time: ${moment.tz('America/New_York')} - ${round.start} - ${round.roundOf}`);
+            if (moment.tz('America/New_York').isBefore(round.start)) {
                 return round.roundOf;
             }
         }
@@ -36,7 +36,7 @@ class MarchMadnessRoundService {
 
     public viewableRound(): number {
         for (const round of this.rounds.slice().reverse()) {
-            if (moment().tz('America/New_York').isSameOrAfter(round.start.tz('America/New_York'))) {
+            if (moment.tz('America/New_York').isSameOrAfter(round.start)) {
                 return round.roundOf;
             }
         }
