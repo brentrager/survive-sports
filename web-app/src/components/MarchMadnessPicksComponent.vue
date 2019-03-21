@@ -7,12 +7,15 @@
             <div class="alert alert-danger mt-2" role="alert" v-if="error">
                 {{ error }}
             </div>
+            <div class="alert alert-danger mt-2" role="alert" v-if="picks.eliminated">
+                Eliminated!
+            </div>
             <div class="row">
                 <div class="mt-2 col-lg-4" v-for="(choices, index1) of picks.choices" :key="index1">
                     <div class="card">
                         <h5 class="card-header">Round of {{choices.roundOf}}</h5>
                         <div class="card-body">
-                            <div v-if="isAvailableRound(choices.roundOf)">
+                            <div v-if="isAvailableRound(choices.roundOf) && !picks.eliminated">
                                 <div class="alert alert-warning mt-2" role="alert">
                                     Locks at {{ timeForRound(choices.roundOf) }} EDT
                                 </div>
