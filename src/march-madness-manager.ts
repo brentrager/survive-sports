@@ -122,14 +122,13 @@ export class MarchMadnessManager {
                                     picksMongoose.eliminated = true;
                                     eliminatedInRound = true;
                                 }
-                            } else {
-                                picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, choice.seed);
                             }
                         }
                     }
 
                     if (!eliminatedInRound && marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
-                        picksMongoose.bestRound - Math.min(picksMongoose.bestRound, choices.roundOf);
+                        picksMongoose.bestRound = Math.min(picksMongoose.bestRound, choices.roundOf);
+                        picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map(x => x.seed));
                     }
                 }
             }
