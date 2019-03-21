@@ -133,6 +133,8 @@ export class MarchMadnessManager {
                 }
             }
 
+            await PicksModel.updateMany({}, picksMongooseArray).exec();
+
             logger.info('Updated results');
         } catch (error) {
             logger.error(`Error udpating results: ${error}`);
