@@ -99,8 +99,7 @@ export class MarchMadnessManager {
 
     private async updateResults() {
         try {
-            const picksDoc = await PicksModel.find({}).exec();
-            let picksMongooseArray: Array<PicksMongoose> = picksDoc.map(x => x.toObject());
+            const picksDoc: any = await PicksModel.find({}).exec();
 
             const choiceListDoc = (await ChoiceListModel.findOne({}).exec());
             if (!choiceListDoc) {
@@ -110,7 +109,7 @@ export class MarchMadnessManager {
 
             const choicesByTeam = this.getChoicesByTeam(choiceList);
 
-            for (const picksMongoose of picksMongooseArray) {
+            for (const picksMongoose of picksDoc) {
                 for (const choices of picksMongoose.choices) {
                     let eliminatedInRound = false;
                     for (const choice of choices.choices) {
@@ -118,7 +117,7 @@ export class MarchMadnessManager {
                         if (actualChoice) {
                             choice.eliminated = actualChoice.eliminated;
                             if (choice.eliminated) {
-                                if (marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
+                                if (marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                                     picksMongoose.eliminated = true;
                                     eliminatedInRound = true;
                                 }
@@ -128,12 +127,16 @@ export class MarchMadnessManager {
 
                     if (!eliminatedInRound && marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
                         picksMongoose.bestRound = Math.min(picksMongoose.bestRound, choices.roundOf);
-                        picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map(x => x.seed));
+                        picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map((x: any) => x.seed));
                     }
                 }
             }
 
-            await PicksModel.updateMany({}, picksMongooseArray).exec();
+            const promises: Array<Promise<any>> = [];
+            for (const picksMongoose of picksDoc) {
+                promises.push(PicksModel.updateOne({_id: picksMongoose._id}, picksMongoose).exec());
+            }
+            await Promise.all(promises);
 
             logger.info('Updated results');
         } catch (error) {
