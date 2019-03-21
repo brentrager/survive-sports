@@ -51,7 +51,7 @@ class MarchMadnessRoundService {
     }
 
     public isViewableRound(round: number) {
-        return round >= this.viewableRound();
+        return round <= this.viewableRound();
     }
 
     public isAvailableRound(round: number) {

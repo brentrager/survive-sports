@@ -2,7 +2,7 @@
     <div class="picks-entry mt-2 mr-2 card">
         <div class="card-body">
             {{ picks.user.name }} <img v-if="picks.user.picture" v-bind:src="picks.user.picture" class="mr-2"/>
-            <button v-if="!hasGameStarted" type="button" class="btn btn-primary mr-2" @click="computeAndSaveEntry()" :disabled="!isDirty">Save Entry</button>
+            <button type="button" class="btn btn-primary mr-2" @click="computeAndSaveEntry()" :disabled="!isDirty">Save Entry</button>
             <button v-if="!hasGameStarted" type="button" class="btn btn-danger" @click="removeEntry(picksIndex)">Remove Entry</button>
             <div class="alert alert-danger mt-2" role="alert" v-if="error">
                 {{ error }}
@@ -29,9 +29,9 @@
                             <div v-else>
                                 <div v-for="(choice, index) of choices.choices" :key="index" class="mt-2">
                                     <div class="row">
-                                        <div class="col-sm-1"><strong style="color:rgba(239, 100, 97, 1)">${choice.seed}</strong></div>
-                                        <div class="col-sm-7 mr-2">${choice.team}</div>
-                                        <div class="col-sm-2 mr-2"><small style="color:rgba(8, 178, 227, 1)">${choice.region}</small></div>
+                                        <div class="col-1"><strong style="color:rgba(239, 100, 97, 1)">{{choice.seed}}</strong></div>
+                                        <div class="col-6 mr-2">{{choice.team}}</div>
+                                        <div class="col-4 mr-2"><small style="color:rgba(8, 178, 227, 1)">{{choice.region.toUpperCase()}}</small></div>
                                     </div>
                                 </div>
                             </div>
@@ -47,7 +47,7 @@
 // tslint:disable:max-line-length
 
 import { Component, Vue, Prop} from 'vue-property-decorator';
-import { Picks, ChoiceList, Choice, Choices } from '@/models/march-madness';
+import { Picks, ChoiceList, Choice, Choices } from '../models/march-madness';
 import axios from 'axios';
 import * as log from 'loglevel';
 import marchMadnessRoundService from '../services/MarchMadnessRoundService';

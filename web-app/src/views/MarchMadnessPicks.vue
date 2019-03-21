@@ -5,7 +5,7 @@
             <button type="button" class="btn btn-primary" @click="addEntry">Add Entry</button>
         </div>
         <div class="alert alert-primary mt-2" role="alert">
-            We had our first bug this morning but that should be ironed out now. Sorry about that!
+            Fixed another bug with viewing past picks.
         </div>
         <div v-for="(pick, index) of computedPicks" v-bind:key="index">
             <march-madness-picks-component
@@ -22,9 +22,8 @@ import { Component, Vue } from 'vue-property-decorator';
 import * as log from 'loglevel';
 import authService from '../services/AuthService';
 import marchMadnessRoundService from '../services/MarchMadnessRoundService';
-import { Picks, ChoiceList, Choices } from '@/models/march-madness';
+import { Picks, ChoiceList, Choices } from '../models/march-madness';
 import MarchMadnessPicksComponent from '../components/MarchMadnessPicksComponent.vue';
-
 
 @Component({
     components: {
