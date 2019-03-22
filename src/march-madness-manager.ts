@@ -116,6 +116,7 @@ export class MarchMadnessManager {
                         const actualChoice = choicesByTeam.get(choice.team);
                         if (actualChoice) {
                             choice.eliminated = actualChoice.eliminated;
+                            choice.winningRounds = actualChoice.winningRounds;
                             if (choice.eliminated) {
                                 if (marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                                     picksMongoose.eliminated = true;

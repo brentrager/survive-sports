@@ -12,20 +12,23 @@ export interface Choice {
     seed: number;
     team: string;
     eliminated: boolean;
+    winningRounds?: Array<number>;
 }
 
 export const ChoiceMongooseSchema = new mongoose.Schema({
     region: String,
     seed: Number,
     team: String,
-    eliminated: Boolean
+    eliminated: Boolean,
+    winningRound: { type: Array, required: false, default: [] }
 });
 
 export const ChoiceSchema = Joi.object().keys({
     region: RegionSchema.required(),
     seed: SeedSchema.required(),
     team: Joi.string().required(),
-    eliminated: Joi.boolean().required()
+    eliminated: Joi.boolean().required(),
+    winningRounds: Joi.array().allow(RoundSchema).optional().default([])
 });
 
 export interface ChoiceList {

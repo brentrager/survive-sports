@@ -11,13 +11,15 @@ export interface Choice {
     seed: number;
     team: string;
     eliminated: boolean;
+    winningRounds?: Array<number>;
 }
 
 export const ChoiceSchema = Joi.object().keys({
     region: RegionSchema.required(),
     seed: SeedSchema.required(),
     team: Joi.string().required(),
-    eliminated: Joi.boolean().required()
+    eliminated: Joi.boolean().required(),
+    winningRounds: Joi.array().allow(RoundSchema).optional().default([])
 });
 
 export interface ChoiceList {

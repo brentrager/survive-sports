@@ -19,7 +19,7 @@
                     <template v-for="(choices) of picks.choices">
                         <template v-if="isViewableRound(choices.roundOf) && choices.choices && choices.choices.length">
                             <template v-for="(choice, index3) of choices.choices">
-                                <td :key="index3" :class="{ 'table-danger': choice.eliminated, 'table-success': !choice.eliminated && (viewableRound() < choices.roundOf) }"><strong style="color:rgba(239, 100, 97, 1)">{{choice.seed}}</strong> {{ choice.team }} <small style="color:rgba(8, 178, 227, 1)">{{choice.region[0].toUpperCase()}}</small></td>
+                                <td :key="index3" :class="{ 'table-danger': choice.eliminated, 'table-success': wonInThisRound(choice, choices.roundOf) }"><strong style="color:rgba(239, 100, 97, 1)">{{choice.seed}}</strong> {{ choice.team }} <small style="color:rgba(8, 178, 227, 1)">{{choice.region[0].toUpperCase()}}</small></td>
                             </template>
                         </template>
                     </template>
@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop} from 'vue-property-decorator';
-import { Results } from '../models/march-madness';
+import { Results, Choice } from '../models/march-madness';
 import axios from 'axios';
 import * as log from 'loglevel';
 import marchMadnessRoundService from '../services/MarchMadnessRoundService';
@@ -60,6 +60,10 @@ export default class MarchMadnessResultsComponent extends Vue {
 
     private viewableRound() {
         return marchMadnessRoundService.viewableRound();
+    }
+
+    private wonInThisRound(choice: Choice, round: number) {
+        return choice.winningRounds && choice.winningRounds.length && choice.winningRounds.indexOf(round) >= 0;
     }
 
     private async start() {
