@@ -44,7 +44,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
 
                 { seed: 1, team: 'Gonzaga', region: 'west', eliminated: false },
                 { seed: 16, team: 'FDU / PV', region: 'west', eliminated: true },
-                { seed: 8, team: 'Syracuse', region: 'west', eliminated: false },
+                { seed: 8, team: 'Syracuse', region: 'west', eliminated: true },
                 { seed: 9, team: 'Baylor', region: 'west', eliminated: false },
                 { seed: 5, team: 'Marquette', region: 'west', eliminated: true },
                 { seed: 12, team: 'Murray State', region: 'west', eliminated: false },
@@ -57,7 +57,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 7, team: 'Nevada', region: 'west', eliminated: true },
                 { seed: 10, team: 'Florida', region: 'west', eliminated: false },
                 { seed: 2, team: 'Michigan', region: 'west', eliminated: false },
-                { seed: 15, team: 'Montana', region: 'west', eliminated: false },
+                { seed: 15, team: 'Montana', region: 'west', eliminated: true },
 
                 { seed: 1, team: 'Virginia', region: 'south', eliminated: false },
                 { seed: 16, team: 'Gardner Webb', region: 'south', eliminated: false },
@@ -68,9 +68,9 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 4, team: 'Kansas State', region: 'south', eliminated: false },
                 { seed: 13, team: 'UC Irvine', region: 'south', eliminated: false },
                 { seed: 6, team: 'Villanova', region: 'south', eliminated: false },
-                { seed: 11, team: 'Saint Mary\'s', region: 'south', eliminated: false },
+                { seed: 11, team: 'Saint Mary\'s', region: 'south', eliminated: true },
                 { seed: 3, team: 'Purdue', region: 'south', eliminated: false },
-                { seed: 14, team: 'Old Dominion', region: 'south', eliminated: false },
+                { seed: 14, team: 'Old Dominion', region: 'south', eliminated: true },
                 { seed: 7, team: 'Cincinnati', region: 'south', eliminated: false },
                 { seed: 10, team: 'Iowa', region: 'south', eliminated: false },
                 { seed: 2, team: 'Tennessee', region: 'south', eliminated: false },
@@ -89,7 +89,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 3, team: 'Houston', region: 'midwest', eliminated: false },
                 { seed: 14, team: 'Georgia State', region: 'midwest', eliminated: false },
                 { seed: 7, team: 'Wofford', region: 'midwest', eliminated: false },
-                { seed: 10, team: 'Seton Hall', region: 'midwest', eliminated: false },
+                { seed: 10, team: 'Seton Hall', region: 'midwest', eliminated: true },
                 { seed: 2, team: 'Kentucky', region: 'midwest', eliminated: false },
                 { seed: 15, team: 'Abilene Christian', region: 'midwest', eliminated: true },
             ]
