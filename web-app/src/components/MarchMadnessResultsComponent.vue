@@ -1,7 +1,7 @@
 <template>
     <div class="results" v-if="results">
         <h1>Results</h1>
-        <table class="table table-striped table-bordered table-responsive-md mt-2" v-if="results.picks && results.picks.length">
+        <table class="table table-striped table-bordered table-responsive mt-2" v-if="results.picks && results.picks.length">
             <thead>
                 <tr>
                     <th scope="col">Name</th>
