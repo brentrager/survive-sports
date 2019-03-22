@@ -43,7 +43,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 15, team: 'Bradley', region: 'east', eliminated: true },
 
                 { seed: 1, team: 'Gonzaga', region: 'west', eliminated: false },
-                { seed: 16, team: 'FDU / PV', region: 'west', eliminated: false },
+                { seed: 16, team: 'FDU / PV', region: 'west', eliminated: true },
                 { seed: 8, team: 'Syracuse', region: 'west', eliminated: false },
                 { seed: 9, team: 'Baylor', region: 'west', eliminated: false },
                 { seed: 5, team: 'Marquette', region: 'west', eliminated: true },
@@ -54,7 +54,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 11, team: 'ASU / SJU', region: 'west', eliminated: false },
                 { seed: 3, team: 'Texas Tech', region: 'west', eliminated: false },
                 { seed: 14, team: 'Northern Kentucky', region: 'west', eliminated: false },
-                { seed: 7, team: 'Nevada', region: 'west', eliminated: false },
+                { seed: 7, team: 'Nevada', region: 'west', eliminated: true },
                 { seed: 10, team: 'Florida', region: 'west', eliminated: false },
                 { seed: 2, team: 'Michigan', region: 'west', eliminated: false },
                 { seed: 15, team: 'Montana', region: 'west', eliminated: false },
@@ -91,7 +91,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 7, team: 'Wofford', region: 'midwest', eliminated: false },
                 { seed: 10, team: 'Seton Hall', region: 'midwest', eliminated: false },
                 { seed: 2, team: 'Kentucky', region: 'midwest', eliminated: false },
-                { seed: 15, team: 'Abilene Christian', region: 'midwest', eliminated: false },
+                { seed: 15, team: 'Abilene Christian', region: 'midwest', eliminated: true },
             ]
         }
 
