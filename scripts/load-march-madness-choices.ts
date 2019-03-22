@@ -61,7 +61,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
 
                 { seed: 1, team: 'Virginia', region: 'south', eliminated: false },
                 { seed: 16, team: 'Gardner Webb', region: 'south', eliminated: false },
-                { seed: 8, team: 'Ole Miss', region: 'south', eliminated: false },
+                { seed: 8, team: 'Ole Miss', region: 'south', eliminated: true },
                 { seed: 9, team: 'Oklahoma', region: 'south', eliminated: false },
                 { seed: 5, team: 'Wisconsin', region: 'south', eliminated: false },
                 { seed: 12, team: 'Oregon', region: 'south', eliminated: false },
@@ -71,7 +71,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 11, team: 'Saint Mary\'s', region: 'south', eliminated: true },
                 { seed: 3, team: 'Purdue', region: 'south', eliminated: false },
                 { seed: 14, team: 'Old Dominion', region: 'south', eliminated: true },
-                { seed: 7, team: 'Cincinnati', region: 'south', eliminated: false },
+                { seed: 7, team: 'Cincinnati', region: 'south', eliminated: true },
                 { seed: 10, team: 'Iowa', region: 'south', eliminated: false },
                 { seed: 2, team: 'Tennessee', region: 'south', eliminated: false },
                 { seed: 15, team: 'Colgate', region: 'south', eliminated: false },
