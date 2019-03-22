@@ -20,7 +20,7 @@ export const ChoiceMongooseSchema = new mongoose.Schema({
     seed: Number,
     team: String,
     eliminated: Boolean,
-    winningRound: { type: Array, required: false, default: [] }
+    winningRounds: { type: [Number], required: false, default: [] }
 });
 
 export const ChoiceSchema = Joi.object().keys({
