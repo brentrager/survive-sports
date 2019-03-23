@@ -1,3 +1,3 @@
 #!/bin/bash
 #export DEV_MODE="1"
-node -r ts-node/register load-march-madness-choices.ts
+node -r ts-node/register update-march-madness-picks.ts
