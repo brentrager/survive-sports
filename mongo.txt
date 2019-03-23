@@ -1,0 +1,638 @@
+MongoDB shell version v4.0.6
+connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("abab553b-a155-496a-9e53-3893a7ed7a75") }
+MongoDB server version: 4.0.6
+Server has startup warnings:
+2019-03-18T19:52:21.818+0000 I STORAGE  [initandlisten]
+2019-03-18T19:52:21.818+0000 I STORAGE  [initandlisten] ** WARNING: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine
+2019-03-18T19:52:21.818+0000 I STORAGE  [initandlisten] **          See http://dochub.mongodb.org/core/prodnotes-filesystem
+2019-03-18T19:52:22.615+0000 I CONTROL  [initandlisten]
+2019-03-18T19:52:22.615+0000 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2019-03-18T19:52:22.615+0000 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.
+2019-03-18T19:52:22.615+0000 I CONTROL  [initandlisten]
+---
+Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+and anyone you share the URL with. MongoDB may use this information to make product
+improvements and to suggest MongoDB products and deployment options to you.
+
+To enable free monitoring, run the following command: db.enableFreeMonitoring()
+To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+---
+
+> use survive-sopj[3G[Juse survive-sop[18G[3G[Juse survive-so[17G[3G[Juse survive-s[16Gop[3G[Juse survive-so[17G[3G[Juse survive-s[16Gports[3G[Juse survive-sports[21G
+switched to db survive-sports
+> db.marchmad[3G[Jdb.marchmadness[18Gp[3G[Jdb.marchmadnesspicks[23G[3G[Jdb.marchmadnesspick[22G[3G[Jdb.marchmadnesspic[21G[3G[Jdb.marchmadnesspi[20G[3G[Jdb.marchmadnessp[19G[3G[Jdb.marchmadness[18Gchoci[3G[Jdb.marchmadnesschoc[22G[3G[Jdb.marchmadnesscho[21Gic[3G[Jdb.marchmadnesschoicelists[29G.find({}).pretty()[3G[Jdb.marchmadnesschoicelists.find({}).pretty()[47G
+{
+	"_id" : ObjectId("5c90529cae6f2801bebf227a"),
+	"choices" : [
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a067"),
+			"seed" : 1,
+			"team" : "Duke",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a066"),
+			"seed" : 16,
+			"team" : "NCCU / NDSU",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a065"),
+			"seed" : 8,
+			"team" : "VCU",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a064"),
+			"seed" : 9,
+			"team" : "UCF",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a063"),
+			"seed" : 5,
+			"team" : "Mississippi State",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a062"),
+			"seed" : 12,
+			"team" : "Liberty",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a061"),
+			"seed" : 4,
+			"team" : "Virginia Tech",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a060"),
+			"seed" : 13,
+			"team" : "Saint Louis",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05f"),
+			"seed" : 6,
+			"team" : "Maryland",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05e"),
+			"seed" : 11,
+			"team" : "Belmont / Temple",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05d"),
+			"seed" : 3,
+			"team" : "LSU",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05c"),
+			"seed" : 14,
+			"team" : "Yale",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05b"),
+			"seed" : 7,
+			"team" : "Louisville",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05a"),
+			"seed" : 10,
+			"team" : "Minnesota",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a059"),
+			"seed" : 2,
+			"team" : "Michigan State",
+			"region" : "east",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a058"),
+			"seed" : 15,
+			"team" : "Bradley",
+			"region" : "east",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a057"),
+			"seed" : 1,
+			"team" : "Gonzaga",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a056"),
+			"seed" : 16,
+			"team" : "FDU / PV",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a055"),
+			"seed" : 8,
+			"team" : "Syracuse",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a054"),
+			"seed" : 9,
+			"team" : "Baylor",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a053"),
+			"seed" : 5,
+			"team" : "Marquette",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a052"),
+			"seed" : 12,
+			"team" : "Murray State",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a051"),
+			"seed" : 4,
+			"team" : "Florida State",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a050"),
+			"seed" : 13,
+			"team" : "Vermont",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04f"),
+			"seed" : 6,
+			"team" : "Buffalo",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04e"),
+			"seed" : 11,
+			"team" : "ASU / SJU",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04d"),
+			"seed" : 3,
+			"team" : "Texas Tech",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04c"),
+			"seed" : 14,
+			"team" : "Northern Kentucky",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04b"),
+			"seed" : 7,
+			"team" : "Nevada",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a04a"),
+			"seed" : 10,
+			"team" : "Florida",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a049"),
+			"seed" : 2,
+			"team" : "Michigan",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a048"),
+			"seed" : 15,
+			"team" : "Montana",
+			"region" : "west",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a047"),
+			"seed" : 1,
+			"team" : "Virginia",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a046"),
+			"seed" : 16,
+			"team" : "Gardner Webb",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a045"),
+			"seed" : 8,
+			"team" : "Ole Miss",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a044"),
+			"seed" : 9,
+			"team" : "Oklahoma",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a043"),
+			"seed" : 5,
+			"team" : "Wisconsin",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a042"),
+			"seed" : 12,
+			"team" : "Oregon",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a041"),
+			"seed" : 4,
+			"team" : "Kansas State",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a040"),
+			"seed" : 13,
+			"team" : "UC Irvine",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03f"),
+			"seed" : 6,
+			"team" : "Villanova",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03e"),
+			"seed" : 11,
+			"team" : "Saint Mary's",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03d"),
+			"seed" : 3,
+			"team" : "Purdue",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03c"),
+			"seed" : 14,
+			"team" : "Old Dominion",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03b"),
+			"seed" : 7,
+			"team" : "Cincinnati",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a03a"),
+			"seed" : 10,
+			"team" : "Iowa",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a039"),
+			"seed" : 2,
+			"team" : "Tennessee",
+			"region" : "south",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a038"),
+			"seed" : 15,
+			"team" : "Colgate",
+			"region" : "south",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a037"),
+			"seed" : 1,
+			"team" : "North Carolina",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a036"),
+			"seed" : 16,
+			"team" : "Iona",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a035"),
+			"seed" : 8,
+			"team" : "Utah State",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a034"),
+			"seed" : 9,
+			"team" : "Washington",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a033"),
+			"seed" : 5,
+			"team" : "Auburn",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a032"),
+			"seed" : 12,
+			"team" : "New Mexico State",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a031"),
+			"seed" : 4,
+			"team" : "Kansas",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a030"),
+			"seed" : 13,
+			"team" : "Northeastern",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02f"),
+			"seed" : 6,
+			"team" : "Iowa State",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02e"),
+			"seed" : 11,
+			"team" : "Ohio State",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02d"),
+			"seed" : 3,
+			"team" : "Houston",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02c"),
+			"seed" : 14,
+			"team" : "Georgia State",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02b"),
+			"seed" : 7,
+			"team" : "Wofford",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a02a"),
+			"seed" : 10,
+			"team" : "Seton Hall",
+			"region" : "midwest",
+			"eliminated" : true
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a029"),
+			"seed" : 2,
+			"team" : "Kentucky",
+			"region" : "midwest",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [ ],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a028"),
+			"seed" : 15,
+			"team" : "Abilene Christian",
+			"region" : "midwest",
+			"eliminated" : true
+		}
+	]
+}
+> exit[3G[Jexit[7G
+bye
+
+ObjectId("5c9300b142e2cd000f1f501d")
+
+{
+	roundOf: 32,
+	choices: [
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a057"),
+			"seed" : 1,
+			"team" : "Gonzaga",
+			"region" : "west",
+			"eliminated" : false
+		},
+		{
+			"winningRounds" : [
+				64
+			],
+			"_id" : ObjectId("5c965c0167c2b3bd4126a05d"),
+			"seed" : 3,
+			"team" : "LSU",
+			"region" : "east",
+			"eliminated" : false
+		}
+	]
+}
