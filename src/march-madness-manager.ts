@@ -90,7 +90,7 @@ export class MarchMadnessManager {
         };
     }
 
-    private getChoicesByTeam(choiceList: ChoiceList) {
+    private getChoicesByTeam(choiceList: ChoiceList): Map<string, Choice> {
         return choiceList.choices.reduce((result, choice) => {
             result.set(choice.team, choice);
             return result;
@@ -110,12 +110,13 @@ export class MarchMadnessManager {
             const choicesByTeam = this.getChoicesByTeam(choiceList);
 
             for (const picksMongoose of picksDoc) {
+                picksMongoose.eliminated = false;
                 for (const choices of picksMongoose.choices) {
                     let eliminatedInRound = false;
                     for (const choice of choices.choices) {
                         const actualChoice = choicesByTeam.get(choice.team);
                         if (actualChoice) {
-                            choice.eliminated = actualChoice.eliminated;
+                            choice.eliminated = actualChoice.eliminated && !(actualChoice.winningRounds && actualChoice.winningRounds.indexOf(choices.roundOf) >= 0);
                             choice.winningRounds = actualChoice.winningRounds;
                             if (choice.eliminated) {
                                 if (marchMadnessRoundService.isViewableRound(choices.roundOf)) {
