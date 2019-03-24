@@ -71,11 +71,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
             }
         }
 
-        await AddTeams('bdunk4@gmail.com', ['Gonzaga', 'LSU']);
-        await AddTeams('Brian Barger', ['Duke', 'Virginia']);
-        await AddTeams('shane bland', ['Gonzaga', 'Kansas']);
-        await AddTeams('Jeffrey Chantiam', ['Tennessee', 'Michigan']);
-        await AddTeams('Drey LyBarger', ['Kentucky', 'Michigan']);
+        await AddTeams('Brian Barger', ['Texas Tech', 'Virginia']);
 
 
         await mongoose.disconnect();

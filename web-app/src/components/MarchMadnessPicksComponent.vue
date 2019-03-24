@@ -33,7 +33,7 @@
                                 <div v-for="(choice, index) of choices.choices" :key="index" class="mt-2">
                                     <div class="row">
                                         <div class="col-2"><strong style="color:rgba(239, 100, 97, 1)">{{choice.seed}}</strong></div>
-                                        <div class="col-6 mr-2">{{choice.team}}</div>
+                                        <div class="col-5 mr-2">{{choice.team}}</div>
                                         <div class="col-4 mr-2"><small style="color:rgba(8, 178, 227, 1)">{{choice.region.toUpperCase()}}</small></div>
                                     </div>
                                 </div>
