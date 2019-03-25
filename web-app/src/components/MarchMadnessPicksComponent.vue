@@ -1,7 +1,7 @@
 <template>
     <div class="picks-entry mt-2 mr-2 card">
         <div class="card-body">
-            {{ picks.user.name }} <img v-if="picks.user.picture" v-bind:src="picks.user.picture" class="mr-2"/>
+            {{ picks.user.name }} <img v-if="picks.user.picture" v-bind:src="picks.user.picture" class="ml-2 mr-2"/>
             <button type="button" class="btn btn-primary mr-2" @click="computeAndSaveEntry()" :disabled="!isDirty">Save Entry</button>
             <button v-if="!hasGameStarted" type="button" class="btn btn-danger" @click="removeEntry(picksIndex)">Remove Entry</button>
             <div class="alert alert-danger mt-2" role="alert" v-if="error">
@@ -100,7 +100,7 @@ export default class MarchMadnessPicksComponent extends Vue {
         const currentRound = marchMadnessRoundService.availableRound();
         const roundIndex = ROUND_INDEXES[currentRound];
         const roundSelectionsCount = ROUND_SELECTIONS[currentRound];
-        if (this.picks.choices.length <= roundIndex) {
+        if (!this.picks.eliminated && this.picks.choices.length <= roundIndex) {
             this.picks.choices.push({
                 roundOf: currentRound,
                 choices: []
