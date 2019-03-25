@@ -111,6 +111,8 @@ export class MarchMadnessManager {
 
             for (const picksMongoose of picksDoc) {
                 picksMongoose.eliminated = false;
+                picksMongoose.bestRound = 64;
+                picksMongoose.tieBreaker = 0;
                 for (const choices of picksMongoose.choices) {
                     let eliminatedInRound = false;
                     for (const choice of choices.choices) {
