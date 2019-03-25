@@ -18,8 +18,8 @@
             </thead>
             <tbody>
                 <tr v-for="(picks, index) of results.picks" v-bind:key="index">
-                    <th scope="row" class="thead-dark" :class="{ 'table-danger': picks.eliminated}">
-                        {{ picks.user.name}} <img v-if="picks.user.picture" :src="picks.user.picture" class="ml-2"/>
+                    <th scope="row" class="thead-dark name" :class="{ 'table-danger': picks.eliminated}">
+                        <img v-if="picks.user.picture" :src="picks.user.picture" class="mr-2"/> {{ picks.user.name}}
                     </th>
                     <td :class="{ 'table-danger': picks.eliminated}">{{ picks.bestRound }}</td>
                     <td :class="{ 'table-danger': picks.eliminated}">{{ picks.tieBreaker }}</td>
@@ -94,7 +94,7 @@ thead th {
     text-align: center;
 }
 
-table td {
+table td, table th.name {
     white-space: nowrap;
 }
 </style>
