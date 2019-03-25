@@ -127,7 +127,7 @@ export class MarchMadnessManager {
                         }
                     }
 
-                    if (!eliminatedInRound && marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
+                    if (!eliminatedInRound && marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                         picksMongoose.bestRound = Math.min(picksMongoose.bestRound, choices.roundOf);
                         picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map((x: any) => x.seed));
                     }
