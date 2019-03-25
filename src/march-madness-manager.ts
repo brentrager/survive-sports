@@ -113,6 +113,7 @@ export class MarchMadnessManager {
                 picksMongoose.eliminated = false;
                 picksMongoose.bestRound = 64;
                 picksMongoose.tieBreaker = 1;
+                let eliminatedInPreviousRound = false;
                 for (const choices of picksMongoose.choices) {
                     let eliminatedInRound = false;
                     for (const choice of choices.choices) {
@@ -124,12 +125,13 @@ export class MarchMadnessManager {
                                 if (marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                                     picksMongoose.eliminated = true;
                                     eliminatedInRound = true;
+                                    eliminatedInPreviousRound = true;
                                 }
                             }
                         }
                     }
 
-                    if (!eliminatedInRound && marchMadnessRoundService.isViewableRound(choices.roundOf)) {
+                    if (!eliminatedInPreviousRound && !eliminatedInRound && marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                         picksMongoose.bestRound = Math.min(picksMongoose.bestRound, choices.roundOf);
                         picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map((x: any) => x.seed));
                     }
