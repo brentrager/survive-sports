@@ -96,6 +96,7 @@ export interface PicksMongoose {
     eliminated: boolean;
     bestRound: number;
     tieBreaker: number;
+    availableTeams: number;
 }
 
 export interface Picks {
@@ -105,6 +106,7 @@ export interface Picks {
     bestRound: number;
     tieBreaker: number;
     availableChoices?: Array<Choice>;
+    availableTeams?: number;
 }
 
 export const PicksMongooseSchema = new mongoose.Schema({
@@ -112,7 +114,8 @@ export const PicksMongooseSchema = new mongoose.Schema({
     choices: [ChoicesMongooseSchema],
     eliminated: Boolean,
     bestRound: Number,
-    tieBreaker: Number
+    tieBreaker: Number,
+    availableTeams: Number
 });
 
 export const PicksSchema = Joi.object().keys({
@@ -127,7 +130,8 @@ export const PicksSchema = Joi.object().keys({
     eliminated: Joi.boolean().required(),
     bestRound: RoundSchema.required(),
     tieBreaker: SeedSchema.required(),
-    availableChoices: Joi.array().items(ChoiceSchema).optional()
+    availableChoices: Joi.array().items(ChoiceSchema).optional(),
+    availableTeams: Joi.number().min(0).optional()
 });
 
 export const PicksArraySchema = Joi.array().items(PicksSchema);

@@ -76,7 +76,8 @@ export class MarchMadnessManager {
             eliminated: picksMongoose.eliminated,
             bestRound: picksMongoose.bestRound,
             tieBreaker: picksMongoose.tieBreaker,
-            availableChoices
+            availableChoices,
+            availableTeams: picksMongoose.availableTeams
         };
     }
 
@@ -86,7 +87,8 @@ export class MarchMadnessManager {
             choices: picks.choices,
             eliminated: picks.eliminated,
             bestRound: picks.bestRound,
-            tieBreaker: picks.tieBreaker
+            tieBreaker: picks.tieBreaker,
+            availableTeams: picks.availableTeams!
         };
     }
 
@@ -106,6 +108,7 @@ export class MarchMadnessManager {
                 throw new Error('Unable to load choice list.');
             }
             const choiceList: ChoiceList = await ChoiceListSchema.validate(choiceListDoc.toObject(), { stripUnknown: true });
+            const availableTeamsSet = new Set(choiceList.choices.filter(x => !x.eliminated).map(x => x.team));
 
             const choicesByTeam = this.getChoicesByTeam(choiceList);
 
@@ -114,6 +117,7 @@ export class MarchMadnessManager {
                 picksMongoose.bestRound = 64;
                 picksMongoose.tieBreaker = 1;
                 let eliminatedInPreviousRound = false;
+                const teamsUsedSet = new Set();
                 for (const choices of picksMongoose.choices) {
                     let eliminatedInRound = false;
                     for (const choice of choices.choices) {
@@ -134,8 +138,16 @@ export class MarchMadnessManager {
                     if (!eliminatedInPreviousRound && !eliminatedInRound && marchMadnessRoundService.isViewableRound(choices.roundOf)) {
                         picksMongoose.bestRound = Math.min(picksMongoose.bestRound, choices.roundOf);
                         picksMongoose.tieBreaker = Math.max(picksMongoose.tieBreaker, ...choices.choices.map((x: any) => x.seed));
+                        choices.choices.map((x: any) => x.team).forEach((x: string) => teamsUsedSet.add(x));
                     }
                 }
+
+                picksMongoose.availableTeams = Array.from(availableTeamsSet).reduce((result, team) => {
+                    if (!teamsUsedSet.has(team)) {
+                        result++;
+                    }
+                    return result;
+                }, 0);
             }
 
             const promises: Array<Promise<any>> = [];
@@ -172,7 +184,8 @@ export class MarchMadnessManager {
                 choices: picksMongoose.choices.filter(choice => marchMadnessRoundService.isViewableRound(choice.roundOf)),
                 eliminated: picksMongoose.eliminated,
                 bestRound: picksMongoose.bestRound,
-                tieBreaker: picksMongoose.tieBreaker
+                tieBreaker: picksMongoose.tieBreaker,
+                availableTeams: picksMongoose.availableTeams
             };
             return picks;
         });
@@ -204,6 +217,24 @@ export class MarchMadnessManager {
                 return 1;
             }
 
+            if (a.availableTeams || b.availableTeams) {
+                if (a.availableTeams && !b.availableTeams) {
+                    return -1;
+                }
+
+                if (b.availableTeams && !a.availableTeams) {
+                    return 1;
+                }
+
+                if (a.availableTeams! > b.availableTeams!) {
+                    return -1;
+                }
+
+                if (b.availableTeams! > a.availableTeams!) {
+                    return 1;
+                }
+            }
+
             return a.user.name.localeCompare(b.user.name);
         });
 
@@ -223,7 +254,8 @@ export class MarchMadnessManager {
             choices: [],
             eliminated: false,
             bestRound: 64,
-            tieBreaker: 1
+            tieBreaker: 1,
+            availableTeams: 0
         };
 
         picksArrayMongoose.push(newPicksMongoose);
