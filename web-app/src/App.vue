@@ -3,11 +3,11 @@
 
         <nav-bar></nav-bar>
 
-        <main role="main" class="container">
+        <main role="main" class="container-fluid">
 
             <router-view/>
 
-        </main><!-- /.container -->
+        </main>
     </div>
 </template>
 

@@ -52,7 +52,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 13, team: 'Vermont', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 6, team: 'Buffalo', region: 'west', eliminated: true, winningRounds: [64, 32] },
                 { seed: 11, team: 'ASU / SJU', region: 'west', eliminated: true, winningRounds: [] },
-                { seed: 3, team: 'Texas Tech', region: 'west', eliminated: false, winningRounds: [64] },
+                { seed: 3, team: 'Texas Tech', region: 'west', eliminated: false, winningRounds: [64, 32] },
                 { seed: 14, team: 'Northern Kentucky', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 7, team: 'Nevada', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 10, team: 'Florida', region: 'west', eliminated: true, winningRounds: [64] },

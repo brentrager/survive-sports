@@ -1,10 +1,12 @@
 <template>
     <div class="results" v-if="results">
         <h1>Results</h1>
-        <table class="table table-striped table-bordered table-responsive mt-2" v-if="results.picks && results.picks.length">
+        <table class="table table-striped table-bordered table-responsive-md mt-2" v-if="results.picks && results.picks.length">
             <thead>
                 <tr>
                     <th scope="col">Name</th>
+                    <th scope="col">Best Round</th>
+                    <th scope="col">Tie Breaker</th>
                     <th scope="col" colspan="4" align="center">Round of 64</th>
                     <th scope="col" colspan="2">Round of 32</th>
                     <th scope="col">Round of 16</th>
@@ -15,7 +17,9 @@
             </thead>
             <tbody>
                 <tr v-for="(picks, index) of results.picks" v-bind:key="index">
-                    <th scope="row" class="thead-dark">{{ picks.user.name}}</th>
+                    <th scope="row" class="thead-dark" :class="{ 'table-danger': picks.eliminated}">{{ picks.user.name}}</th>
+                    <td :class="{ 'table-danger': picks.eliminated}">{{ picks.bestRound }}</td>
+                    <td :class="{ 'table-danger': picks.eliminated}">{{ picks.tieBreaker }}</td>
                     <template v-for="(choices) of picks.choices">
                         <template v-if="isViewableRound(choices.roundOf) && choices.choices && choices.choices.length">
                             <template v-for="(choice, index3) of choices.choices">
