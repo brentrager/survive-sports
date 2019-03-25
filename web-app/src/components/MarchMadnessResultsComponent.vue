@@ -92,10 +92,17 @@ img {
 
 thead th {
     text-align: center;
+    background-color: $background-color;
 }
 
 table td, table th.name {
     white-space: nowrap;
+}
+
+th:first-child
+{
+    position: sticky;
+    left: 0px;
 }
 </style>
 
