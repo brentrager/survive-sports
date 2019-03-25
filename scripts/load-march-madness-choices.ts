@@ -28,7 +28,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 1, team: 'Duke', region: 'east', eliminated: false, winningRounds: [64] },
                 { seed: 16, team: 'NCCU / NDSU', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 8, team: 'VCU', region: 'east', eliminated: true, winningRounds: [] },
-                { seed: 9, team: 'UCF', region: 'east', eliminated: false, winningRounds: [64] },
+                { seed: 9, team: 'UCF', region: 'east', eliminated: true, winningRounds: [64] },
                 { seed: 5, team: 'Mississippi State', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 12, team: 'Liberty', region: 'east', eliminated: true, winningRounds: [64] },
                 { seed: 4, team: 'Virginia Tech', region: 'east', eliminated: false, winningRounds: [64, 32] },
