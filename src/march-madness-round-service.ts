@@ -17,13 +17,13 @@ class MarchMadnessRoundService {
         { roundOf: 16, start: moment.tz('2019-03-28 7:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
         { roundOf: 8, start: moment.tz('2019-03-30 6:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
         { roundOf: 4, start: moment.tz('2019-04-06 6:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
-        { roundOf: 2, start: moment.tz('2019-04-08 9:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')},
+        { roundOf: 2, start: moment.tz('2019-04-08 9:00 PM', 'YYYY-MM-DD hh:mm a', 'America/New_York')}
     ];
 
     /**
      * Returns the current available round.
      */
-    public availableRound(): number {
+    availableRound(): number {
         for (const round of this.rounds) {
             // logger.info(`Time: ${moment.tz('America/New_York')} - ${round.start} - ${round.roundOf}`);
             if (moment.tz('America/New_York').isBefore(round.start)) {
@@ -34,7 +34,7 @@ class MarchMadnessRoundService {
         return 64;
     }
 
-    public viewableRound(): number {
+    viewableRound(): number {
         for (const round of this.rounds.slice().reverse()) {
             if (moment.tz('America/New_York').isSameOrAfter(round.start)) {
                 return round.roundOf;
@@ -44,15 +44,15 @@ class MarchMadnessRoundService {
         return 0;
     }
 
-    public isViewableRound(round: number) {
+    isViewableRound(round: number): boolean {
         return round >= this.viewableRound();
     }
 
-    public isAvailableRound(round: number) {
+    isAvailableRound(round: number): boolean {
         return round <= this.availableRound();
     }
 
-    public hasGameStarted() {
+    hasGameStarted(): boolean {
         return !this.isAvailableRound(64);
     }
 }

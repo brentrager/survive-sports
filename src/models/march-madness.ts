@@ -52,7 +52,7 @@ export interface Choices {
 
 export const ChoicesMongooseSchema = new mongoose.Schema({
     roundOf: Number,
-    choices: [ChoiceMongooseSchema],
+    choices: [ChoiceMongooseSchema]
 });
 
 export const ChoicesSchema = Joi.object().keys({

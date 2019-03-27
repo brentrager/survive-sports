@@ -35,7 +35,7 @@ const logger = new LabelledLogger('Main');
         const mfl = new MFL();
         const fantasyPros = new FantasyPros();
         const playersManager = new PlayersManager(db, mfl, fantasyPros);
-        //await playersManager.update();
+        // await playersManager.update();
 
         const userTeamsManager = new UserTeamsManager(playersManager);
 

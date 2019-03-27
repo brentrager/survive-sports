@@ -336,7 +336,7 @@ export class ApiServer {
             options: {
                 response: {
                     status: {
-                        200: ResultsSchema.required(),
+                        200: ResultsSchema.required()
                     },
                     failAction: onResponseValidationFailure
                 }
@@ -514,7 +514,7 @@ export class ApiServer {
 
             if (response.isBoom) {
                 const responseBoom: Boom = response;
-                this.logger.info(`Response for ${request.method} ${request.path}: ${responseBoom.output.statusCode} - ${JSON.stringify(responseBoom.output.payload)}`);
+                this.logger.info(`Response for ${request.method} ${request.path}: ${responseBoom.output.statusCode} - ${JSON.stringify(responseBoom.output.payload)} - ${responseBoom.message}`);
             } else {
                 const responseHapi: hapi.ResponseObject = response;
                 this.logger.info(`Response for ${request.method} ${request.path}: ${responseHapi.statusCode}`);

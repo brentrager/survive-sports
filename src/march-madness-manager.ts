@@ -41,11 +41,15 @@ export class MarchMadnessManager {
     constructor() {
     }
 
-    public start() {
-        this.updateResults();
+    start(): void {
+        MarchMadnessManager.updateResults().then(() => {
+            logger.info('Updated results');
+        }).catch(error => {
+            logger.error(`Error updating results: ${error}`);
+        });
     }
 
-    private async getChoices() {
+    private static async getChoices(): Promise<ChoiceList> {
         const choiceListDoc = (await ChoiceListModel.findOne({}).exec());
 
         if (!choiceListDoc) {
@@ -58,7 +62,7 @@ export class MarchMadnessManager {
         return choiceList;
     }
 
-    private picksMongooseToPicksConverter(picksMongoose: PicksMongoose, user: User, choiceList: ChoiceList): Picks {
+    private static picksMongooseToPicksConverter(picksMongoose: PicksMongoose, user: User, choiceList: ChoiceList): Picks {
         const teamSet = new Set();
         for (const choices of picksMongoose.choices) {
             if (!marchMadnessRoundService.isAvailableRound(choices.roundOf)) {
@@ -81,7 +85,7 @@ export class MarchMadnessManager {
         };
     }
 
-    private picksToPicksMongooseConverter(picks: Picks): PicksMongoose {
+    private static picksToPicksMongooseConverter(picks: Picks): PicksMongoose {
         return {
             userId: picks.user.id,
             choices: picks.choices,
@@ -92,14 +96,15 @@ export class MarchMadnessManager {
         };
     }
 
-    private getChoicesByTeam(choiceList: ChoiceList): Map<string, Choice> {
+    private static getChoicesByTeam(choiceList: ChoiceList): Map<string, Choice> {
         return choiceList.choices.reduce((result, choice) => {
             result.set(choice.team, choice);
+
             return result;
         }, new Map());
     }
 
-    private async updateResults() {
+    private static async updateResults(): Promise<void> {
         try {
             const picksDoc: any = await PicksModel.find({}).exec();
 
@@ -110,7 +115,7 @@ export class MarchMadnessManager {
             const choiceList: ChoiceList = await ChoiceListSchema.validate(choiceListDoc.toObject(), { stripUnknown: true });
             const availableTeamsSet = new Set(choiceList.choices.filter(x => !x.eliminated).map(x => x.team));
 
-            const choicesByTeam = this.getChoicesByTeam(choiceList);
+            const choicesByTeam = MarchMadnessManager.getChoicesByTeam(choiceList);
 
             for (const picksMongoose of picksDoc) {
                 picksMongoose.eliminated = false;
@@ -146,6 +151,7 @@ export class MarchMadnessManager {
                     if (!teamsUsedSet.has(team)) {
                         result++;
                     }
+
                     return result;
                 }, 0);
             }
@@ -155,31 +161,34 @@ export class MarchMadnessManager {
                 promises.push(PicksModel.updateOne({_id: picksMongoose._id}, picksMongoose).exec());
             }
             await Promise.all(promises);
-
-            logger.info('Updated results');
         } catch (error) {
             logger.error(`Error udpating results: ${error}`);
         }
 
         setTimeout(() => {
-            this.updateResults();
+            MarchMadnessManager.updateResults().then(() => {
+                logger.info('Updated results');
+            }).catch(error => {
+                logger.error(`Error updating results: ${error}`);
+            });
         }, 30 * 1000);
     }
 
-    public async getResults() {
+    async getResults(): Promise<Results> {
         const usersDoc = await UserModel.find({}).exec();
         const users: Array<User> = (await UsersSchema.validate(usersDoc.map(x => x.toObject()), { stripUnknown: true })) as any;
 
         const picksDoc = await PicksModel.find({}).exec();
-        let picksMongooseArray: Array<PicksMongoose> = picksDoc.map(x => x.toObject());
+        const picksMongooseArray: Array<PicksMongoose> = picksDoc.map(x => x.toObject());
 
         const usersMap = users.reduce((result, user) => {
             result.set(user.id, user);
+
             return result;
         }, new Map());
 
         const picks: Array<Picks> = picksMongooseArray.map((picksMongoose: PicksMongoose) => {
-            const picks: Picks = {
+            const innerPicks: Picks = {
                 user: usersMap.get(picksMongoose.userId),
                 choices: picksMongoose.choices.filter(choice => marchMadnessRoundService.isViewableRound(choice.roundOf)),
                 eliminated: picksMongoose.eliminated,
@@ -187,7 +196,8 @@ export class MarchMadnessManager {
                 tieBreaker: picksMongoose.tieBreaker,
                 availableTeams: picksMongoose.availableTeams
             };
-            return picks;
+
+            return innerPicks;
         });
 
         const results: Results = (await ResultsSchema.validate({ picks }, { stripUnknown: true }));
@@ -241,13 +251,13 @@ export class MarchMadnessManager {
         return results;
     }
 
-    public async createPicksForUser(user: User) {
+    async createPicksForUser(user: User): Promise<Array<Picks>> {
         if (marchMadnessRoundService.hasGameStarted()) {
             throw new Error('Game already started.');
         }
-        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+        const picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
-        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+        const picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
 
         const newPicksMongoose = {
             userId: user.id,
@@ -262,21 +272,21 @@ export class MarchMadnessManager {
 
         await PicksModel.create(newPicksMongoose);
 
-        const choiceList = await this.getChoices();
+        const choiceList = await MarchMadnessManager.getChoices();
 
-        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picksRaw = picksArrayMongoose.map(x => MarchMadnessManager.picksMongooseToPicksConverter(x, user, choiceList));
         const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
         return picks;
     }
 
-    public async deletePicksForUser(user: User, pickIndex: number) {
+    async deletePicksForUser(user: User, pickIndex: number): Promise<Array<Picks>> {
         if (marchMadnessRoundService.hasGameStarted()) {
             throw new Error('Game already started.');
         }
-        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+        const picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
-        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+        const picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
 
         if (picksArrayMongoose.length > pickIndex) {
             picksArrayMongoose.splice(pickIndex, 1);
@@ -288,31 +298,31 @@ export class MarchMadnessManager {
 
         await PicksModel.deleteOne({ _id: id }).exec();
 
-        const choiceList = await this.getChoices();
+        const choiceList = await MarchMadnessManager.getChoices();
 
-        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picksRaw = picksArrayMongoose.map(x => MarchMadnessManager.picksMongooseToPicksConverter(x, user, choiceList));
         const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
         return picks;
     }
 
-    public async getPicksByUser(user: User) {
-        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+    async getPicksByUser(user: User): Promise<Array<Picks>> {
+        const picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
-        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
-        const choiceList = await this.getChoices();
-        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+        const choiceList = await MarchMadnessManager.getChoices();
+        const picksRaw = picksArrayMongoose.map(x => MarchMadnessManager.picksMongooseToPicksConverter(x, user, choiceList));
         const picks: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
         return picks;
     }
 
-    public async setPickForUser(user: User, pickIndex: number, choices: Choices) {
-        let picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
+    async setPickForUser(user: User, pickIndex: number, choices: Choices): Promise<Array<Picks>> {
+        const picksArrayDoc = await PicksModel.find({ userId: user.id }).exec();
 
-        let picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
-        const choiceList = await this.getChoices();
-        const picksRaw = picksArrayMongoose.map(x => this.picksMongooseToPicksConverter(x, user, choiceList));
+        const picksArrayMongoose: Array<PicksMongoose> = picksArrayDoc.map(x => x.toObject());
+        const choiceList = await MarchMadnessManager.getChoices();
+        const picksRaw = picksArrayMongoose.map(x => MarchMadnessManager.picksMongooseToPicksConverter(x, user, choiceList));
         const picksArray: Array<Picks> = (await PicksArraySchema.validate(picksRaw, { stripUnknown: true }));
 
         if (picksArrayDoc.length <= pickIndex) {
@@ -322,7 +332,7 @@ export class MarchMadnessManager {
         const round = await RoundSchema.validate(choices.roundOf);
 
         if (!marchMadnessRoundService.isAvailableRound(round)) {
-            throw new Error(`Round ${round} cannot be set.`)
+            throw new Error(`Round ${round} cannot be set.`);
         }
 
         const picks = picksArray[pickIndex];
@@ -345,8 +355,8 @@ export class MarchMadnessManager {
 
         const teamSet = new Set();
 
-        for (const choices of picks.choices) {
-            for (const choice of choices.choices) {
+        for (const innerChoices of picks.choices) {
+            for (const choice of innerChoices.choices) {
                 if (teamSet.has(choice.team)) {
                     throw new Error(`Tried to select a team more than once: ${choice.team}`);
                 }
@@ -354,11 +364,7 @@ export class MarchMadnessManager {
             }
         }
 
-        picks.choices.forEach(choices => {
-            choices.choices.forEach
-        })
-
-        const picksMongoose = this.picksToPicksMongooseConverter(picks);
+        const picksMongoose = MarchMadnessManager.picksToPicksMongooseConverter(picks);
 
         await PicksModel.findOneAndUpdate({ _id: picksArrayDoc[pickIndex]._id }, picksMongoose).exec();
 
