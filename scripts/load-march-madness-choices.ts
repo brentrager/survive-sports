@@ -42,38 +42,38 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 2, team: 'Michigan State', region: 'east', eliminated: false, winningRounds: [64, 32] },
                 { seed: 15, team: 'Bradley', region: 'east', eliminated: true, winningRounds: [] },
 
-                { seed: 1, team: 'Gonzaga', region: 'west', eliminated: false, winningRounds: [64, 32] },
+                { seed: 1, team: 'Gonzaga', region: 'west', eliminated: false, winningRounds: [64, 32, 16] },
                 { seed: 16, team: 'FDU / PV', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 8, team: 'Syracuse', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 9, team: 'Baylor', region: 'west', eliminated: true, winningRounds: [64] },
                 { seed: 5, team: 'Marquette', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 12, team: 'Murray State', region: 'west', eliminated: true, winningRounds: [64] },
-                { seed: 4, team: 'Florida State', region: 'west', eliminated: false, winningRounds: [64, 32] },
+                { seed: 4, team: 'Florida State', region: 'true', eliminated: false, winningRounds: [64, 32] },
                 { seed: 13, team: 'Vermont', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 6, team: 'Buffalo', region: 'west', eliminated: true, winningRounds: [64, 32] },
                 { seed: 11, team: 'ASU / SJU', region: 'west', eliminated: true, winningRounds: [] },
-                { seed: 3, team: 'Texas Tech', region: 'west', eliminated: false, winningRounds: [64, 32] },
+                { seed: 3, team: 'Texas Tech', region: 'west', eliminated: false, winningRounds: [64, 32, 16] },
                 { seed: 14, team: 'Northern Kentucky', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 7, team: 'Nevada', region: 'west', eliminated: true, winningRounds: [] },
                 { seed: 10, team: 'Florida', region: 'west', eliminated: true, winningRounds: [64] },
-                { seed: 2, team: 'Michigan', region: 'west', eliminated: false, winningRounds: [64, 32] },
+                { seed: 2, team: 'Michigan', region: 'west', eliminated: true, winningRounds: [64, 32] },
                 { seed: 15, team: 'Montana', region: 'west', eliminated: true, winningRounds: [] },
 
-                { seed: 1, team: 'Virginia', region: 'south', eliminated: false, winningRounds: [64, 32] },
+                { seed: 1, team: 'Virginia', region: 'south', eliminated: false, winningRounds: [64, 32, 16] },
                 { seed: 16, team: 'Gardner Webb', region: 'south', eliminated: true, winningRounds: [] },
                 { seed: 8, team: 'Ole Miss', region: 'south', eliminated: true, winningRounds: [] },
                 { seed: 9, team: 'Oklahoma', region: 'south', eliminated: true, winningRounds: [64] },
                 { seed: 5, team: 'Wisconsin', region: 'south', eliminated: true, winningRounds: [] },
-                { seed: 12, team: 'Oregon', region: 'south', eliminated: false, winningRounds: [64, 32] },
+                { seed: 12, team: 'Oregon', region: 'south', eliminated: true, winningRounds: [64, 32] },
                 { seed: 4, team: 'Kansas State', region: 'south', eliminated: true, winningRounds: [] },
                 { seed: 13, team: 'UC Irvine', region: 'south', eliminated: true, winningRounds: [64] },
                 { seed: 6, team: 'Villanova', region: 'south', eliminated: true, winningRounds: [64] },
                 { seed: 11, team: 'Saint Mary\'s', region: 'south', eliminated: true, winningRounds: [] },
-                { seed: 3, team: 'Purdue', region: 'south', eliminated: false, winningRounds: [64, 32] },
+                { seed: 3, team: 'Purdue', region: 'south', eliminated: false, winningRounds: [64, 32, 16] },
                 { seed: 14, team: 'Old Dominion', region: 'south', eliminated: true, winningRounds: [] },
                 { seed: 7, team: 'Cincinnati', region: 'south', eliminated: true, winningRounds: [] },
                 { seed: 10, team: 'Iowa', region: 'south', eliminated: true, winningRounds: [64] },
-                { seed: 2, team: 'Tennessee', region: 'south', eliminated: false, winningRounds: [64, 32] },
+                { seed: 2, team: 'Tennessee', region: 'south', eliminated: true, winningRounds: [64, 32] },
                 { seed: 15, team: 'Colgate', region: 'south', eliminated: true, winningRounds: [] },
 
                 { seed: 1, team: 'North Carolina', region: 'midwest', eliminated: false, winningRounds: [64, 32] },
@@ -101,4 +101,4 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
     } catch (error) {
         logger.error(`Error: ${error}`);
     }
-})();
+})().then().catch();

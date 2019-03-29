@@ -156,7 +156,7 @@ const ROUNDS = [64, 32, 16, 8, 4, 2];
             { name: 'williams.chase@gmail.com', teams: ['Minnesota', 'Kansas State', 'Marquette', 'Iowa State'] },
         ];
 
-        for (const pick of picks) {
+        /*for (const pick of picks) {
             const userDoc = await UserModel.findOne({name: pick.name }).exec();
 
             if (userDoc) {
@@ -195,7 +195,9 @@ const ROUNDS = [64, 32, 16, 8, 4, 2];
             } else {
                 logger.warn(`Unable to find user ${pick.name}`);
             }
-        }
+        }*/
+
+        await AddTeams('heathpaulsen@hotmail.com', ['Tennessee'], 16);
 
 
         await mongoose.disconnect();
