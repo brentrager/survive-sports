@@ -25,7 +25,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
         // Now load teams
         const choiceList: ChoiceList = {
             choices: [
-                { seed: 1, team: 'Duke', region: 'east', eliminated: false, winningRounds: [64, 32, 16] },
+                { seed: 1, team: 'Duke', region: 'east', eliminated: true, winningRounds: [64, 32, 16] },
                 { seed: 16, team: 'NCCU / NDSU', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 8, team: 'VCU', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 9, team: 'UCF', region: 'east', eliminated: true, winningRounds: [64] },
@@ -39,7 +39,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 14, team: 'Yale', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 7, team: 'Louisville', region: 'east', eliminated: true, winningRounds: [] },
                 { seed: 10, team: 'Minnesota', region: 'east', eliminated: true, winningRounds: [64] },
-                { seed: 2, team: 'Michigan State', region: 'east', eliminated: false, winningRounds: [64, 32, 16] },
+                { seed: 2, team: 'Michigan State', region: 'east', eliminated: false, winningRounds: [64, 32, 16, 8] },
                 { seed: 15, team: 'Bradley', region: 'east', eliminated: true, winningRounds: [] },
 
                 { seed: 1, team: 'Gonzaga', region: 'west', eliminated: true, winningRounds: [64, 32, 16] },
@@ -80,7 +80,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 16, team: 'Iona', region: 'midwest', eliminated: true, winningRounds: [] },
                 { seed: 8, team: 'Utah State', region: 'midwest', eliminated: true, winningRounds: [] },
                 { seed: 9, team: 'Washington', region: 'midwest', eliminated: true, winningRounds: [64] },
-                { seed: 5, team: 'Auburn', region: 'midwest', eliminated: false, winningRounds: [64, 32, 16] },
+                { seed: 5, team: 'Auburn', region: 'midwest', eliminated: false, winningRounds: [64, 32, 16, 8] },
                 { seed: 12, team: 'New Mexico State', region: 'midwest', eliminated: true, winningRounds: [] },
                 { seed: 4, team: 'Kansas', region: 'midwest', eliminated: true, winningRounds: [64] },
                 { seed: 13, team: 'Northeastern', region: 'midwest', eliminated: true, winningRounds: [] },
@@ -90,7 +90,7 @@ const logger = new LabelledLogger('LoadMarchMadnessChoices');
                 { seed: 14, team: 'Georgia State', region: 'midwest', eliminated: true, winningRounds: [] },
                 { seed: 7, team: 'Wofford', region: 'midwest', eliminated: true, winningRounds: [64] },
                 { seed: 10, team: 'Seton Hall', region: 'midwest', eliminated: true , winningRounds: []},
-                { seed: 2, team: 'Kentucky', region: 'midwest', eliminated: false, winningRounds: [64, 32, 16] },
+                { seed: 2, team: 'Kentucky', region: 'midwest', eliminated: true, winningRounds: [64, 32, 16] },
                 { seed: 15, team: 'Abilene Christian', region: 'midwest', eliminated: true, winningRounds: [] },
             ]
         }
