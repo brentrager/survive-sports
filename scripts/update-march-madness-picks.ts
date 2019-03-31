@@ -76,7 +76,6 @@ const ROUNDS = [64, 32, 16, 8, 4, 2];
             const user = userNameMap.get(userName);
             const userPicks = picksByUserNameMap.get(userName);
             for (const userPick of userPicks!) {
-                userPick.eliminated = false;
                 if (!userPick.eliminated) {
                     userPick.choices[ROUND_INDEX_MAP[round]] = {
                         roundOf: round,
@@ -197,7 +196,10 @@ const ROUNDS = [64, 32, 16, 8, 4, 2];
             }
         }*/
 
-        await AddTeams('heathpaulsen@hotmail.com', ['Tennessee'], 16);
+        await AddTeams('Drey LyBarger', ['Virginia'], 8);
+        await AddTeams('bdunk4@gmail.com', ['Kentucky'], 8);
+        await AddTeams('jrf@excaliburlipid.com', ['Virginia'], 8);
+        await AddTeams('ahilden82@hotmail.com', ['Duke'], 8);
 
 
         await mongoose.disconnect();
